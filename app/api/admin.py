@@ -78,6 +78,8 @@ async def system_reset(req: Request):
     reset_storage()
     _create_default_admin()
     _register_default_languages()
+    # Clear session to log out current user
+    req.session.clear()
     return ApiResponse(code=200, msg="system reset successfully", data=None)
 
 
@@ -126,9 +128,10 @@ async def export_data(req: Request):
             "language": s["language"],
             "code": s["code"],
             "status": s["status"],
-            "details": s.get("results", []),
             "score": s["score"],
             "counts": s.get("counts", 0),
+            "details": s.get("results", []),
+            "created_at": s.get("created_at", ""),
         })
 
     data = {"users": users, "problems": problems, "submissions": submissions}
@@ -147,25 +150,36 @@ async def import_data(req: Request, file: UploadFile = File(...)):
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail="Invalid JSON format")
 
-    # Import users (merge: latest wins for duplicates)
-    if "users" in data:
-        for u in data["users"]:
-            uid = u["user_id"]
-            existing = get_users().get(uid)
-            if existing:
-                existing.update(u)
-            else:
-                save_user(uid, dict(u))
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="Import data must be a JSON object")
 
-    # Import problems
+    # Validate and import users
+    if "users" in data:
+        if not isinstance(data["users"], list):
+            raise HTTPException(status_code=400, detail="'users' must be a list")
+        for u in data["users"]:
+            if not isinstance(u, dict) or "user_id" not in u or "username" not in u:
+                raise HTTPException(status_code=400, detail="Each user must have 'user_id' and 'username'")
+            uid = u["user_id"]
+            save_user(uid, dict(u))
+
+    # Validate and import problems
     if "problems" in data:
+        if not isinstance(data["problems"], list):
+            raise HTTPException(status_code=400, detail="'problems' must be a list")
         for p in data["problems"]:
+            if not isinstance(p, dict) or "id" not in p or "title" not in p:
+                raise HTTPException(status_code=400, detail="Each problem must have 'id' and 'title'")
             pid = p["id"]
             save_problem(pid, dict(p))
 
-    # Import submissions
+    # Validate and import submissions
     if "submissions" in data:
+        if not isinstance(data["submissions"], list):
+            raise HTTPException(status_code=400, detail="'submissions' must be a list")
         for s in data["submissions"]:
+            if not isinstance(s, dict) or "submission_id" not in s:
+                raise HTTPException(status_code=400, detail="Each submission must have 'submission_id'")
             sid = s["submission_id"]
             save_submission(sid, dict(s))
 
