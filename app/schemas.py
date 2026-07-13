@@ -4,7 +4,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # --- Enums ---
@@ -66,13 +66,19 @@ class ProblemBrief(BaseModel):
 # --- Language schemas ---
 
 class LanguageCreate(BaseModel):
-    id: str
     name: str
-    extension: str
+    file_ext: str
     compile_cmd: str = ""
     run_cmd: str
     time_limit: float = 1.0
     memory_limit: int = 128
+
+    @field_validator("file_ext")
+    @classmethod
+    def validate_ext(cls, v: str) -> str:
+        if not v.startswith("."):
+            v = "." + v
+        return v
 
 
 # --- Judge schemas ---
@@ -102,9 +108,8 @@ class JudgeResponse(BaseModel):
 # --- User schemas ---
 
 class UserRegister(BaseModel):
-    username: str = Field(min_length=3, max_length=40)
-    password: str = Field(min_length=6)
-    email: str = ""
+    username: str = Field(..., min_length=3, max_length=40)
+    password: str = Field(..., min_length=6)
 
 
 class UserLogin(BaseModel):
@@ -112,11 +117,12 @@ class UserLogin(BaseModel):
     password: str
 
 
-class RoleChange(BaseModel):
-    role: str
-
 class PermissionChange(BaseModel):
     user_id: str
+    role: str
+class LogVisibilityUpdate(BaseModel):
+    public_cases: bool = False
+class RoleUpdate(BaseModel):
     role: str
 
 
@@ -156,3 +162,9 @@ class ApiResponse(BaseModel):
 class PagedData(BaseModel):
     total: int
     items: list[Any]
+class SubmissionListData(BaseModel):
+    total: int
+    submissions: list[Any]
+class UserListData(BaseModel):
+    total: int
+    users: list[Any]

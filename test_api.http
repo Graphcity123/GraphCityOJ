@@ -16,18 +16,17 @@ POST {{baseUrl}}/api/reset/
 
 
 ### 3. 注册用户
-POST {{baseUrl}}/api/users/register
+POST {{baseUrl}}/api/users/
 Content-Type: application/json
 
 {
   "username": "testuser",
-  "password": "test123456",
-  "email": "test@test.com"
+  "password": "test123456"
 }
 
 
 ### 4. 登录
-POST {{baseUrl}}/api/users/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -37,7 +36,7 @@ Content-Type: application/json
 
 
 ### 5. 管理员登录
-POST {{baseUrl}}/api/users/login
+POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
@@ -51,9 +50,8 @@ POST {{baseUrl}}/api/languages/
 Content-Type: application/json
 
 {
-  "id": "python",
-  "name": "Python 3",
-  "extension": ".py",
+  "name": "python",
+  "file_ext": ".py",
   "run_cmd": "python3 {src}"
 }
 
@@ -97,7 +95,7 @@ GET {{baseUrl}}/api/problems/sum
 
 
 ### 11. 提交代码评测（AC - 正确答案）
-POST {{baseUrl}}/api/judge/
+POST {{baseUrl}}/api/submissions/
 Content-Type: application/json
 
 {
@@ -108,7 +106,7 @@ Content-Type: application/json
 
 
 ### 12. 提交代码评测（WA - 错误答案）
-POST {{baseUrl}}/api/judge/
+POST {{baseUrl}}/api/submissions/
 Content-Type: application/json
 
 {
@@ -119,7 +117,7 @@ Content-Type: application/json
 
 
 ### 13. 查看评测列表
-GET {{baseUrl}}/api/submissions/?page=1&page_size=10
+GET {{baseUrl}}/api/submissions/?page=1&page_size=10&problem_id=sum
 
 
 ### 14. 查看评测详情（替换为实际 submission_id）
@@ -131,14 +129,14 @@ PUT {{baseUrl}}/api/submissions/sub_1/rejudge
 
 
 ### 16. 查看用户信息
-GET {{baseUrl}}/api/users/testuser
+GET {{baseUrl}}/api/users/usr_1
 
 
 ### 17. 查看用户列表（管理员）
 GET {{baseUrl}}/api/users/?page=1&page_size=10
 
 
-### 18. 修改用户角色（管理员，替换为实际 user_id）
+### 18. 修改用户角色（管理员）
 PUT {{baseUrl}}/api/users/usr_1/role
 Content-Type: application/json
 
@@ -148,15 +146,20 @@ Content-Type: application/json
 
 
 ### 19. 查询评测日志
-GET {{baseUrl}}/api/logs/?submission_id=sub_1
+GET {{baseUrl}}/api/submissions/sub_1/log
 
 
 ### 20. 查询审计日志（管理员）
-GET {{baseUrl}}/api/logs/audit
+GET {{baseUrl}}/api/logs/access/
 
 
 ### 21. 切换题目测例公开状态（管理员/教师）
-PUT {{baseUrl}}/api/problems/sum/public_cases
+PUT {{baseUrl}}/api/problems/sum/log_visibility
+Content-Type: application/json
+
+{
+  "public_cases": false
+}
 
 
 ### 22. 数据导出（管理员）
@@ -168,4 +171,4 @@ DELETE {{baseUrl}}/api/problems/sum
 
 
 ### 24. 登出
-GET {{baseUrl}}/api/users/logout
+POST {{baseUrl}}/api/auth/logout

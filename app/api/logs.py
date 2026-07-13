@@ -3,9 +3,9 @@ from __future__ import annotations
 import json as _json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Query, Request
 
-from app.schemas import ApiResponse, PagedData
+from app.schemas import ApiResponse, LogVisibilityUpdate
 from app.storage import (
     add_audit,
     get_audit_logs,
@@ -16,103 +16,94 @@ from app.storage import (
     get_user,
     save_problem,
 )
-from app.utils.auth import require_admin, require_login
+from app.utils.auth import get_current_user, require_admin, require_login
 from app.utils.exceptions import PermissionDenied, ProblemNotFound, SubmissionNotFound
 
 router = APIRouter(prefix="/api", tags=["logs"])
 
 
-def _parse_log_detail(log: dict) -> dict:
-    """Parse the stored detail JSON string into a results array."""
-    log = dict(log)
-    detail_raw = log.pop("detail", "[]")
-    try:
-        log["results"] = _json.loads(detail_raw) if isinstance(detail_raw, str) else (detail_raw or [])
-    except (_json.JSONDecodeError, TypeError):
-        log["results"] = []
-    return log
+def _parse_submission_results(sub: dict) -> list[dict]:
+    results = sub.get("results", [])
+    if isinstance(results, str):
+        try:
+            return _json.loads(results)
+        except (_json.JSONDecodeError, TypeError):
+            return []
+    return list(results) if results else []
 
 
-@router.get("/logs/")
-async def query_logs(
-    req: Request,
-    submission_id: str | None = Query(default=None),
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-):
+@router.get("/submissions/{submission_id}/log")
+async def query_submission_log(req: Request, submission_id: str):
     user = require_login(req)
+    sub = get_submission(submission_id)
+    if sub is None:
+        raise SubmissionNotFound(submission_id)
 
-    if submission_id:
-        sub = get_submission(submission_id)
-        if sub is None:
-            raise SubmissionNotFound(submission_id)
-        if user.get("role") != "admin" and sub["user_id"] != user["user_id"]:
-            problem = get_problem(sub["problem_id"])
-            if problem and not problem.get("public_cases", True):
-                raise PermissionDenied("Cannot view logs for this submission")
-        all_logs = get_logs_by_submission(submission_id)
-    else:
-        all_entries = list(get_logs().values())
-        if user.get("role") != "admin":
-            filtered = []
-            for lg in all_entries:
-                if lg["user_id"] == user["user_id"]:
-                    filtered.append(lg)
-                else:
-                    problem = get_problem(lg.get("problem_id", ""))
-                    if problem and problem.get("public_cases", True):
-                        filtered.append(lg)
-            all_logs = filtered
-        else:
-            all_logs = all_entries
+    is_owner = sub["user_id"] == user["user_id"]
+    is_admin = user.get("role") == "admin"
 
-    total = len(all_logs)
-    start = (page - 1) * page_size
-    items = [_parse_log_detail(lg) for lg in all_logs[start:start + page_size]]
+    if not is_admin and not is_owner:
+        raise PermissionDenied("Cannot view logs for this submission")
 
-    add_audit({
-        "action": "query_logs",
-        "user_id": user["user_id"],
-        "username": user.get("username", ""),
-        "submission_id": submission_id or "all",
-        "ip": req.client.host if req.client else "",
+    problem = get_problem(sub["problem_id"])
+    public_cases = problem.get("public_cases", True) if problem else True
+
+    details = _parse_submission_results(sub)
+    if not is_admin and not public_cases:
+        details = []
+
+    return ApiResponse(code=200, msg="success", data={
+        "details": details,
+        "score": sub.get("score", 0),
+        "counts": sub.get("counts", 0),
     })
 
-    return ApiResponse(code=200, msg="success", data=PagedData(total=total, items=items).model_dump())
+
+@router.put("/problems/{problem_id}/log_visibility")
+async def set_log_visibility(req: Request, problem_id: str):
+    user = require_admin(req)
+    problem = get_problem(problem_id)
+    if problem is None:
+        raise ProblemNotFound(problem_id)
+
+    # Toggle when no body; otherwise use body value
+    body_data = None
+    try:
+        body_raw = await req.json()
+        body_data = LogVisibilityUpdate(**body_raw)
+    except Exception:
+        pass
+
+    if body_data is not None:
+        problem["public_cases"] = body_data.public_cases
+    else:
+        problem["public_cases"] = not problem.get("public_cases", True)
+
+    save_problem(problem_id, problem)
+    return ApiResponse(code=200, msg="log visibility updated", data={
+        "problem_id": problem_id,
+        "public_cases": problem["public_cases"],
+    })
 
 
-@router.get("/logs/audit")
-async def query_audit_logs(
+@router.get("/logs/access/")
+async def query_access_logs(
     req: Request,
+    user_id: str | None = Query(default=None),
+    problem_id: str | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
 ):
     require_admin(req)
-    audit = get_audit_logs()
-    total = len(audit)
+    all_logs = list(get_audit_logs())
+
+    if user_id:
+        all_logs = [lg for lg in all_logs if lg.get("user_id") == user_id]
+    if problem_id:
+        all_logs = [lg for lg in all_logs if lg.get("problem_id") == problem_id]
+
+    total = len(all_logs)
     start = (page - 1) * page_size
-    items = audit[start:start + page_size]
-    return ApiResponse(code=200, msg="success", data=PagedData(total=total, items=items).model_dump())
+    items = all_logs[start:start + page_size]
 
-
-@router.get("/problems/{problem_id}/public_cases")
-async def get_public_cases(req: Request, problem_id: str):
-    require_login(req)
-    problem = get_problem(problem_id)
-    if problem is None:
-        raise ProblemNotFound(problem_id)
-    return ApiResponse(code=200, msg="success", data={"public_cases": problem.get("public_cases", True)})
-
-
-@router.put("/problems/{problem_id}/public_cases")
-async def set_public_cases(req: Request, problem_id: str):
-    user = require_login(req)
-    if user.get("role") not in ("admin", "teacher"):
-        raise PermissionDenied("Only admin or teacher can change public_cases")
-    problem = get_problem(problem_id)
-    if problem is None:
-        raise ProblemNotFound(problem_id)
-    current = problem.get("public_cases", True)
-    problem["public_cases"] = not current
-    save_problem(problem_id, problem)
-    return ApiResponse(code=200, msg="public_cases toggled", data={"public_cases": problem["public_cases"]})
+    return ApiResponse(code=200, msg="success", data=items)

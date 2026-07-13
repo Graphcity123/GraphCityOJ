@@ -55,7 +55,7 @@ async def run_judge(
 
     compile_cmd = lang_info.get("compile_cmd", "")
     run_cmd = lang_info["run_cmd"]
-    extension = lang_info["extension"]
+    extension = lang_info.get("file_ext", ".py")
 
     per_tc_score = _TOTAL_SCORE / len(testcases)
 

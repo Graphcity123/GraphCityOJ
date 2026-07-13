@@ -57,10 +57,9 @@ def _handle_response(resp: requests.Response) -> dict[str, Any]:
 
 def register(username: str, password: str, email: str = "") -> dict[str, Any]:
     session = get_session()
-    resp = _api_call("POST", "/api/users/register", json={
+    resp = _api_call("POST", "/api/users/", json={
         "username": username,
         "password": password,
-        "email": email,
     })
     if resp.status_code != 200:
         detail = resp.json().get("detail", "Registration failed")
@@ -70,7 +69,7 @@ def register(username: str, password: str, email: str = "") -> dict[str, Any]:
 
 def login(username: str, password: str) -> dict[str, Any]:
     session = get_session()
-    resp = _api_call("POST", "/api/users/login", json={
+    resp = _api_call("POST", "/api/auth/login", json={
         "username": username,
         "password": password,
     })
@@ -83,7 +82,7 @@ def login(username: str, password: str) -> dict[str, Any]:
 
 def logout() -> None:
     session = get_session()
-    _api_call("GET", "/api/users/logout")
+    _api_call("POST", "/api/auth/logout")
 
 
 # ── Problems ──────────────────────────────────────────────────
@@ -126,7 +125,7 @@ def list_languages() -> list[dict[str, Any]]:
 
 def submit_judge(problem_id: str, language: str, code: str) -> dict[str, Any]:
     session = get_session()
-    resp = _api_call("POST", "/api/judge/", json={
+    resp = _api_call("POST", "/api/submissions/", json={
         "problem_id": problem_id,
         "language": language,
         "code": code,
