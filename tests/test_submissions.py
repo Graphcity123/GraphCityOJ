@@ -15,7 +15,7 @@ def reset_before():
 async def admin_client(client: AsyncClient) -> AsyncClient:
     """Login as admin and return authenticated client."""
     await client.post("/api/reset/")
-    resp = await client.post("/api/user/login", json={
+    resp = await client.post("/api/users/login", json={
         "username": "admin",
         "password": "admintestpassword",
     })
@@ -27,12 +27,12 @@ async def admin_client(client: AsyncClient) -> AsyncClient:
 async def user_client(client: AsyncClient) -> AsyncClient:
     """Register a normal user, login, return authenticated client."""
     await client.post("/api/reset/")
-    await client.post("/api/user/register", json={
+    await client.post("/api/users/register", json={
         "username": "student1",
         "password": "test123456",
         "email": "s1@test.com",
     })
-    resp = await client.post("/api/user/login", json={
+    resp = await client.post("/api/users/login", json={
         "username": "student1",
         "password": "test123456",
     })
@@ -166,10 +166,10 @@ class TestListSubmissions:
         await _create_submission(admin_client, "print(1+2)")
 
         # Register and login as another user
-        await client.post("/api/user/register", json={
+        await client.post("/api/users/register", json={
             "username": "student2", "password": "test123456",
         })
-        await client.post("/api/user/login", json={
+        await client.post("/api/users/login", json={
             "username": "student2", "password": "test123456",
         })
         resp = await client.get("/api/submissions/")
@@ -212,18 +212,18 @@ class TestGetSubmissionDetail:
         """管理员可以查看任何人的提交"""
         await _create_problem(admin_client)
         # Register a user and create a submission as that user
-        await admin_client.post("/api/user/register", json={
+        await admin_client.post("/api/users/register", json={
             "username": "student3", "password": "test123456",
         })
         # Login as student to create submission
-        resp = await admin_client.post("/api/user/login", json={
+        resp = await admin_client.post("/api/users/login", json={
             "username": "student3", "password": "test123456",
         })
         assert resp.status_code == 200
         await _create_submission(admin_client, "print(1+2)")
 
         # Login back as admin
-        await admin_client.post("/api/user/login", json={
+        await admin_client.post("/api/users/login", json={
             "username": "admin", "password": "admintestpassword",
         })
 
@@ -237,10 +237,10 @@ class TestGetSubmissionDetail:
         await _create_submission(admin_client, "print(1+2)")
 
         # Another user tries to view
-        await client.post("/api/user/register", json={
+        await client.post("/api/users/register", json={
             "username": "student4", "password": "test123456",
         })
-        await client.post("/api/user/login", json={
+        await client.post("/api/users/login", json={
             "username": "student4", "password": "test123456",
         })
         resp = await client.get("/api/submissions/sub_1")
@@ -260,10 +260,10 @@ class TestRejudge:
         await _create_submission(admin_client, "print(1+2)")
 
         # Regular user tries to rejudge
-        await client.post("/api/user/register", json={
+        await client.post("/api/users/register", json={
             "username": "student5", "password": "test123456",
         })
-        await client.post("/api/user/login", json={
+        await client.post("/api/users/login", json={
             "username": "student5", "password": "test123456",
         })
         resp = await client.put("/api/submissions/sub_1/rejudge")

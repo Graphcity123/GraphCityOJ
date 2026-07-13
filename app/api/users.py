@@ -27,7 +27,7 @@ from app.utils.auth import (
 )
 from app.utils.exceptions import PermissionDenied, UserNotFound
 
-router = APIRouter(prefix="/api/user", tags=["user"])
+router = APIRouter(prefix="/api/users", tags=["user"])
 
 
 def _hash_password(password: str) -> str:

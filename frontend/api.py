@@ -57,7 +57,7 @@ def _handle_response(resp: requests.Response) -> dict[str, Any]:
 
 def register(username: str, password: str, email: str = "") -> dict[str, Any]:
     session = get_session()
-    resp = _api_call("POST", "/api/user/register", json={
+    resp = _api_call("POST", "/api/users/register", json={
         "username": username,
         "password": password,
         "email": email,
@@ -70,7 +70,7 @@ def register(username: str, password: str, email: str = "") -> dict[str, Any]:
 
 def login(username: str, password: str) -> dict[str, Any]:
     session = get_session()
-    resp = _api_call("POST", "/api/user/login", json={
+    resp = _api_call("POST", "/api/users/login", json={
         "username": username,
         "password": password,
     })
@@ -83,7 +83,7 @@ def login(username: str, password: str) -> dict[str, Any]:
 
 def logout() -> None:
     session = get_session()
-    _api_call("GET", "/api/user/logout")
+    _api_call("GET", "/api/users/logout")
 
 
 # ── Problems ──────────────────────────────────────────────────
