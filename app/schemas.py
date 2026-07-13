@@ -40,16 +40,16 @@ class SampleItem(BaseModel):
 class ProblemCreate(BaseModel):
     id: str
     title: str
-    description: str = ""
-    input_description: str = ""
-    output_description: str = ""
-    samples: list[SampleItem] = []
-    constraints: str = ""
-    testcases: list[TestCaseItem] = []
+    description: str
+    input_description: str
+    output_description: str
+    samples: list[SampleItem]
+    constraints: str
+    testcases: list[TestCaseItem]
     hint: str = ""
     source: str = ""
     tags: list[str] = []
-    time_limit: float = 1.0
+    time_limit: float = 3.0
     memory_limit: int = 128
     author: str = ""
     difficulty: str = ""

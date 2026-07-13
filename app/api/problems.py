@@ -20,9 +20,11 @@ router = APIRouter(prefix="/api/problems", tags=["problems"])
 
 @router.get("/")
 async def list_problems(
+    req: Request,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
 ):
+    user = require_login(req)
     all_problems = list(get_problems().values())
     total = len(all_problems)
     start = (page - 1) * page_size
@@ -54,7 +56,8 @@ async def create_problem(req: Request, body: ProblemCreate):
 
 
 @router.get("/{problem_id}")
-async def get_problem_detail(problem_id: str):
+async def get_problem_detail(req: Request, problem_id: str):
+    user = require_login(req)
     p = get_problem(problem_id)
     if p is None:
         raise ProblemNotFound(problem_id)
