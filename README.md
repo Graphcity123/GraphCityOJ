@@ -9,6 +9,7 @@
 - **数据存储**: 内存字典（现阶段），计划迁移至 SQLite
 - **密码**: SHA-256 加盐哈希
 - **评测引擎**: asyncio + subprocess，支持资源限制
+- **前端**: Streamlit（Python）
 
 ## 快速开始
 
@@ -25,6 +26,12 @@ uvicorn app.main:app --reload --port 8000
 
 启动后访问 http://localhost:8000/health 验证服务。
 
+# 启动前端（另一个终端）
+pip install streamlit requests
+streamlit run frontend/app.py --server.port 8501
+
+前端访问 http://localhost:8501。
+
 ## 实现进度
 
 | Step | 状态 | 说明 |
@@ -35,6 +42,7 @@ uvicorn app.main:app --reload --port 8000
 | Step4：用户管理 | ✅ 已完成 | 注册、登录、角色管理 |
 | Step5：日志与权限 | ✅ 已完成 | 日志查询、审计、测例公开控制 |
 | Step6：持久化存储 | ✅ 已完成 | SQLite 迁移、数据导出/导入 |
+| Adv2：前端交互 | ✅ 已完成 | Streamlit 前端：登录、提交、评测结果查询 |
 
 ## 项目结构
 
@@ -66,6 +74,9 @@ oj-system/
 │   │   └── models.py
 │   ├── core/                # 核心逻辑（预留）
 │   └── services/            # 业务服务（预留）
+├── frontend/               # Streamlit 前端
+│   ├── app.py              # 主应用
+│   └── api.py              # API 客户端
 ├── problems/                # 题目配置目录（TOML/JSON）
 │   └── example/             # 示例题目：A+B Problem
 ├── tests/                   # pytest 测试用例
@@ -159,6 +170,18 @@ curl -X POST http://localhost:8000/api/users/login   -H "Content-Type: applicati
 # 携带 Cookie 的后续请求
 curl -b cookies.txt http://localhost:8000/api/problems/
 ```
+
+### 方式三：Streamlit 前端
+
+启动后端后，另开终端：
+
+```bash
+cd oj-system
+pip install streamlit requests
+streamlit run frontend/app.py --server.port 8501
+```
+
+浏览器打开 http://localhost:8501，登录后即可使用。
 
 ## 实验要求
 
