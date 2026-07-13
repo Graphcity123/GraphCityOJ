@@ -20,7 +20,7 @@ cd oj-system
 pip install -e .
 
 # 启动服务
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000 --reload-exclude 'work/*' --reload-exclude 'work/**/*'
 `
 
 启动后访问 http://localhost:8000/health 验证服务。

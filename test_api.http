@@ -1,7 +1,7 @@
 ### ============================================================
 ### OJ System API Tests — VS Code REST Client
 ### 使用方式：安装 REST Client 插件，在 VS Code 中直接点 Send Request
-### 请确保先启动服务器：uvicorn app.main:app --reload --port 8000
+### 请确保先启动服务器：uvicorn app.main:app --reload --port 8000 --reload-exclude 'work/*' --reload-exclude 'work/**/*'
 ### ============================================================
 
 @baseUrl = http://localhost:8000
