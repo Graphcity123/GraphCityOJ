@@ -115,6 +115,10 @@ class UserLogin(BaseModel):
 class RoleChange(BaseModel):
     role: str
 
+class PermissionChange(BaseModel):
+    user_id: str
+    role: str
+
 
 # --- Submission schemas ---
 

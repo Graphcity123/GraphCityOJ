@@ -1,0 +1,171 @@
+### ============================================================
+### OJ System API Tests — VS Code REST Client
+### 使用方式：安装 REST Client 插件，在 VS Code 中直接点 Send Request
+### 请确保先启动服务器：uvicorn app.main:app --reload --port 8000
+### ============================================================
+
+@baseUrl = http://localhost:8000
+
+
+### 1. Health Check
+GET {{baseUrl}}/health
+
+
+### 2. 系统重置（测试前先执行）
+POST {{baseUrl}}/api/reset/
+
+
+### 3. 注册用户
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "test123456",
+  "email": "test@test.com"
+}
+
+
+### 4. 登录
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "test123456"
+}
+
+
+### 5. 管理员登录
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admintestpassword"
+}
+
+
+### 6. 注册编程语言（登录后）
+POST {{baseUrl}}/api/languages/
+Content-Type: application/json
+
+{
+  "id": "python",
+  "name": "Python 3",
+  "extension": ".py",
+  "run_cmd": "python3 {src}"
+}
+
+
+### 7. 查看支持的语言列表
+GET {{baseUrl}}/api/languages/
+
+
+### 8. 创建题目
+POST {{baseUrl}}/api/problems/
+Content-Type: application/json
+
+{
+  "id": "sum",
+  "title": "A+B Problem",
+  "description": "输入两个整数 a 和 b，输出它们的和。",
+  "input_description": "一行，包含两个整数 a 和 b，用空格分隔。",
+  "output_description": "一行，输出 a+b 的结果。",
+  "constraints": "|a|, |b| <= 10^9",
+  "testcases": [
+    { "input": "1 2\n", "output": "3" },
+    { "input": "-1 1\n", "output": "0" },
+    { "input": "100 200\n", "output": "300" }
+  ],
+  "time_limit": 2.0,
+  "memory_limit": 256,
+  "samples": [
+    { "input": "1 2", "output": "3" }
+  ],
+  "tags": ["基础题"],
+  "difficulty": "入门"
+}
+
+
+### 9. 查看题目列表
+GET {{baseUrl}}/api/problems/?page=1&page_size=10
+
+
+### 10. 查看题目详情
+GET {{baseUrl}}/api/problems/sum
+
+
+### 11. 提交代码评测（AC - 正确答案）
+POST {{baseUrl}}/api/judge/
+Content-Type: application/json
+
+{
+  "problem_id": "sum",
+  "language": "python",
+  "code": "a, b = map(int, input().split())\nprint(a + b)"
+}
+
+
+### 12. 提交代码评测（WA - 错误答案）
+POST {{baseUrl}}/api/judge/
+Content-Type: application/json
+
+{
+  "problem_id": "sum",
+  "language": "python",
+  "code": "a, b = map(int, input().split())\nprint(a - b)"
+}
+
+
+### 13. 查看评测列表
+GET {{baseUrl}}/api/submissions/?page=1&page_size=10
+
+
+### 14. 查看评测详情（替换为实际 submission_id）
+GET {{baseUrl}}/api/submissions/sub_1
+
+
+### 15. 重新评测（管理员）
+PUT {{baseUrl}}/api/submissions/sub_1/rejudge
+
+
+### 16. 查看用户信息
+GET {{baseUrl}}/api/users/testuser
+
+
+### 17. 查看用户列表（管理员）
+GET {{baseUrl}}/api/users/?page=1&page_size=10
+
+
+### 18. 修改用户角色（管理员，替换为实际 user_id）
+PUT {{baseUrl}}/api/users/usr_1/role
+Content-Type: application/json
+
+{
+  "role": "admin"
+}
+
+
+### 19. 查询评测日志
+GET {{baseUrl}}/api/logs/?submission_id=sub_1
+
+
+### 20. 查询审计日志（管理员）
+GET {{baseUrl}}/api/logs/audit
+
+
+### 21. 切换题目测例公开状态（管理员/教师）
+PUT {{baseUrl}}/api/problems/sum/public_cases
+
+
+### 22. 数据导出（管理员）
+GET {{baseUrl}}/api/export/
+
+
+### 23. 删除题目（管理员）
+DELETE {{baseUrl}}/api/problems/sum
+
+
+### 24. 登出
+GET {{baseUrl}}/api/users/logout

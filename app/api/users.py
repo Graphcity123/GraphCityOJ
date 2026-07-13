@@ -8,12 +8,12 @@ from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.schemas import (
     ApiResponse,
-    PagedData,
-    RoleChange,
+    PermissionChange,
     UserLogin,
     UserRegister,
 )
 from app.storage import (
+    add_audit,
     get_user,
     get_user_by_username,
     get_users,
@@ -27,11 +27,11 @@ from app.utils.auth import (
 )
 from app.utils.exceptions import PermissionDenied, UserNotFound
 
-router = APIRouter(prefix="/api/users", tags=["users"])
+router = APIRouter(prefix="/api/user", tags=["user"])
 
 
 def _hash_password(password: str) -> str:
-    """Simple salted SHA-256 hash (bcrypt preferred but kept simple for this experiment)."""
+    """Simple salted SHA-256 hash."""
     salt = secrets.token_hex(16)
     return salt + ":" + hashlib.sha256((salt + password).encode()).hexdigest()
 
@@ -46,6 +46,10 @@ def _verify_password(password: str, stored: str) -> bool:
 
 @router.post("/register")
 async def register(body: UserRegister):
+    if len(body.username) < 3 or len(body.username) > 40:
+        raise HTTPException(status_code=400, detail="Username must be 3-40 characters")
+    if len(body.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
     existing = get_user_by_username(body.username)
     if existing is not None:
         raise HTTPException(status_code=409, detail=f"Username '{body.username}' already exists")
@@ -57,7 +61,7 @@ async def register(body: UserRegister):
         "username": body.username,
         "password": _hash_password(body.password),
         "email": body.email,
-        "role": "student",
+        "role": "user",
         "join_time": now.split("T")[0],
         "submit_count": 0,
         "resolve_count": 0,
@@ -76,7 +80,6 @@ async def login(req: Request, body: UserLogin):
     if not _verify_password(body.password, user["password"]):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    # Store session
     session_user = {
         "user_id": user["user_id"],
         "username": user["username"],
@@ -92,7 +95,7 @@ async def logout(req: Request):
     return ApiResponse(code=200, msg="logout success", data=None)
 
 
-@router.get("/")
+@router.get("/list")
 async def list_users(
     req: Request,
     page: int = Query(default=1, ge=1),
@@ -110,40 +113,50 @@ async def list_users(
             "join_time": u.get("join_time", ""),
             "submit_count": u.get("submit_count", 0),
             "resolve_count": u.get("resolve_count", 0),
-            "role": u.get("role", "student"),
+            "role": u.get("role", "user"),
         })
-    return ApiResponse(code=200, msg="success", data=PagedData(total=total, items=items).model_dump())
+    return ApiResponse(code=200, msg="success", data={"total": total, "users": items})
 
 
-@router.get("/{user_id}")
+@router.get("/info/{user_id}")
 async def get_user_info(req: Request, user_id: str):
     req_user = get_current_user(req)
     u = get_user(user_id)
     if u is None:
         raise UserNotFound(user_id)
-    # Permission: self or admin
     if req_user.get("role") != "admin" and user_id != req_user["user_id"]:
         raise PermissionDenied("Cannot view other users info")
     return ApiResponse(code=200, msg="success", data={
         "user_id": u["user_id"],
         "username": u["username"],
         "email": u.get("email", ""),
-        "role": u.get("role", "student"),
+        "role": u.get("role", "user"),
         "join_time": u.get("join_time", ""),
         "submit_count": u.get("submit_count", 0),
         "resolve_count": u.get("resolve_count", 0),
     })
 
 
-@router.put("/{user_id}/role")
-async def change_user_role(req: Request, user_id: str, body: RoleChange):
-    require_admin(req)
-    u = get_user(user_id)
-    if u is None:
-        raise UserNotFound(user_id)
-    allowed_roles = {"admin", "student", "banned", "teacher"}
+@router.put("/permission")
+async def change_user_permission(req: Request, body: PermissionChange):
+    admin_user = require_admin(req)
+    target = get_user(body.user_id)
+    if target is None:
+        raise UserNotFound(body.user_id)
+    allowed_roles = {"admin", "user", "banned", "teacher"}
     if body.role not in allowed_roles:
         raise HTTPException(status_code=400, detail=f"Invalid role '{body.role}'")
-    u["role"] = body.role
-    save_user(user_id, u)
-    return ApiResponse(code=200, msg="role updated", data=None)
+    old_role = target.get("role", "user")
+    target["role"] = body.role
+    save_user(body.user_id, target)
+
+    add_audit({
+        "action": "change_permission",
+        "operator": admin_user["user_id"],
+        "target_user": body.user_id,
+        "old_role": old_role,
+        "new_role": body.role,
+        "detail": f"Admin {admin_user['username']} changed user {body.user_id} role from {old_role} to {body.role}",
+    })
+
+    return ApiResponse(code=200, msg="permission updated", data=None)
