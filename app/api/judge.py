@@ -20,6 +20,7 @@ from app.storage import (
     get_user,
     next_id,
     save_language,
+    save_log,
     save_submission,
 )
 from app.utils.auth import get_current_user_or_none, require_login

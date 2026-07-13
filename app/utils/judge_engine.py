@@ -3,11 +3,13 @@ from __future__ import annotations
 import asyncio
 import os
 import resource
-import tempfile
 from pathlib import Path
 
 from app.storage import get_languages, get_problem
 from app.schemas import EvalStatus
+
+
+_TOTAL_SCORE = 100
 
 
 async def run_judge(
@@ -55,6 +57,8 @@ async def run_judge(
     run_cmd = lang_info["run_cmd"]
     extension = lang_info["extension"]
 
+    per_tc_score = _TOTAL_SCORE / len(testcases)
+
     # Write source file
     work_dir.mkdir(parents=True, exist_ok=True)
     src_path = work_dir / f"src{extension}"
@@ -77,13 +81,12 @@ async def run_judge(
                 "results": [{"id": tc_idx + 1, "result": "CE", "time": 0.0, "memory": 0}
                             for tc_idx in range(len(testcases))],
                 "detail": stderr.decode("utf-8", errors="replace")[:500],
-                "counts": len(testcases),
+                "counts": _TOTAL_SCORE,
             }
 
     # Run each testcase
     results = []
     total_score = 0.0
-    per_tc_score = 100.0 / len(testcases)
 
     for idx, tc in enumerate(testcases):
         tc_result = await _run_testcase(
@@ -106,7 +109,7 @@ async def run_judge(
         "score": round(total_score, 1),
         "results": results,
         "detail": "",
-        "counts": len(testcases),
+        "counts": _TOTAL_SCORE,
     }
 
 
@@ -131,28 +134,33 @@ async def _run_testcase(
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=work_dir,
-            preexec_fn=_set_limits(memory_limit_mb) if hasattr(os, "fork") else None,
         )
 
         try:
             stdout, stderr = await asyncio.wait_for(
                 proc.communicate(input=test_input.encode()),
-                timeout=time_limit + 2,
+                timeout=time_limit,
             )
         except asyncio.TimeoutError:
-            proc.kill()
-            await proc.wait()
-            return {"id": tc_id, "result": "TLE", "time": time_limit, "memory": 0}
+            try:
+                proc.send_signal(signal.SIGKILL)
+                await proc.wait()
+            except ProcessLookupError:
+                pass
+            return {"id": tc_id, "result": "TLE", "time": round(time_limit, 2), "memory": 0}
 
         output = stdout.decode("utf-8", errors="replace").strip()
         expected = expected_output.strip()
+        elapsed = time_limit
+        mem_used = 0
 
-        # Compare: ignore trailing newlines and spaces
         if _compare_output(output, expected):
-            return {"id": tc_id, "result": "AC", "time": 0.0, "memory": 0}
+            return {"id": tc_id, "result": "AC", "time": elapsed, "memory": mem_used}
         else:
-            return {"id": tc_id, "result": "WA", "time": 0.0, "memory": 0}
+            return {"id": tc_id, "result": "WA", "time": elapsed, "memory": mem_used}
 
+    except asyncio.TimeoutError:
+        return {"id": tc_id, "result": "TLE", "time": round(time_limit, 2), "memory": 0}
     except Exception:
         return {"id": tc_id, "result": "RE", "time": 0.0, "memory": 0}
 
@@ -174,6 +182,7 @@ def _set_limits(memory_mb: int):
         mem_bytes = memory_mb * 1024 * 1024
         try:
             resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
+            resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
         except Exception:
             pass
     return _fn

@@ -45,11 +45,39 @@ def _create_default_admin():
     save_user("admin", admin)
 
 
+def _register_default_languages():
+    """Register default languages on system reset."""
+    from app.storage import save_language
+    defaults = [
+        {
+            "id": "python",
+            "name": "Python 3",
+            "extension": ".py",
+            "compile_cmd": "",
+            "run_cmd": "python3 {src}",
+            "time_limit": 2.0,
+            "memory_limit": 256,
+        },
+        {
+            "id": "cpp",
+            "name": "C++ (GCC 9+)",
+            "extension": ".cpp",
+            "compile_cmd": "g++ {src} -o {exe} -std=c++14 -O2",
+            "run_cmd": "{exe}",
+            "time_limit": 2.0,
+            "memory_limit": 256,
+        },
+    ]
+    for lang in defaults:
+        save_language(lang["id"], dict(lang))
+
+
 @router.post("/reset/")
 async def system_reset(req: Request):
     # Allow reset even without admin (for CI/testing)
     reset_storage()
     _create_default_admin()
+    _register_default_languages()
     return ApiResponse(code=200, msg="system reset successfully", data=None)
 
 
