@@ -33,3 +33,19 @@ class ConfigValidationError(HTTPException):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=detail,
         )
+
+
+class UserNotFound(HTTPException):
+    def __init__(self, user_id: str) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User '{user_id}' not found",
+        )
+
+
+class LanguageNotFound(HTTPException):
+    def __init__(self, lang_id: str) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Language '{lang_id}' not found or not supported",
+        )
