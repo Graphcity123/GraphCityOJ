@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-import resource
+import resource, signal
 from pathlib import Path
 
 from app.storage import get_languages, get_problem
@@ -134,6 +134,7 @@ async def _run_testcase(
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=work_dir,
+            preexec_fn=_set_limits(memory_limit_mb),
         )
 
         try:
@@ -143,7 +144,7 @@ async def _run_testcase(
             )
         except asyncio.TimeoutError:
             try:
-                proc.send_signal(signal.SIGKILL)
+                os.kill(proc.pid, signal.SIGKILL)
                 await proc.wait()
             except ProcessLookupError:
                 pass
@@ -151,7 +152,7 @@ async def _run_testcase(
 
         output = stdout.decode("utf-8", errors="replace").strip()
         expected = expected_output.strip()
-        elapsed = time_limit
+        elapsed = 0.0
         mem_used = 0
 
         if _compare_output(output, expected):

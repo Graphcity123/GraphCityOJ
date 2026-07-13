@@ -4,48 +4,156 @@
 
 ## 技术栈
 
-- **框架**: FastAPI (async/await)
-- **语言**: Python >= 3.11
-- **数据库**: SQLite (via SQLAlchemy + aiosqlite)
+- **Web 框架**: FastAPI (async/await)
+- **认证**: Starlette SessionMiddleware
+- **数据存储**: 内存字典（现阶段），计划迁移至 SQLite
+- **密码**: SHA-256 加盐哈希
+- **评测引擎**: asyncio + subprocess，支持资源限制
 
 ## 快速开始
 
 ```bash
-# 创建虚拟环境
-python3 -m venv .venv
-source .venv/bin/activate
+cd oj-system
 
 # 安装依赖
 pip install -e .
+pip install itsdangerous
 
 # 启动服务
 uvicorn app.main:app --reload --port 8000
 ```
 
+启动后访问 http://localhost:8000/health 验证服务。
+
+## 实现进度
+
+| Step | 状态 | 说明 |
+|------|------|------|
+| Step1：题目管理 | ✅ 已完成 | 题目增删查改，分页列表，管理员删除 |
+| Step2：题目评测 | ✅ 已完成 | Python/C++ 评测，动态注册语言，时间/内存限制 |
+| Step3：评测列表 | 📝 待开始 | 评测历史、详情、重新评测 |
+| Step4：用户管理 | 📝 待开始 | 注册、登录、角色管理 |
+| Step5：日志与权限 | 📝 待开始 | 日志查询、审计、测例公开控制 |
+| Step6：持久化存储 | 📝 待开始 | SQLite 迁移、数据导出/导入 |
+
 ## 项目结构
 
-参见文件树设计文档。
+```
+oj-system/
+├── app/
+│   ├── main.py              # FastAPI 入口，中间件与路由注册
+│   ├── config.py            # pydantic-settings 配置
+│   ├── storage.py           # 内存存储层（dict 抽象，预留 SQLite 迁移）
+│   ├── schemas.py           # 全部 Pydantic 数据模型与枚举
+│   ├── api/
+│   │   ├── problems.py      # Step1: 题目 CRUD
+│   │   ├── judge.py         # Step2: 评测提交 + 语言管理
+│   │   ├── submissions.py   # Step3: 评测列表/详情/重评
+│   │   ├── users.py         # Step4: 注册/登录/角色变更
+│   │   ├── logs.py          # Step5: 日志查询/权限/审计
+│   │   └── admin.py         # Step6: 重置/导出/导入
+│   ├── utils/
+│   │   ├── auth.py          # Session 认证与权限校验
+│   │   ├── exceptions.py    # HTTP 异常类
+│   │   └── judge_engine.py  # 异步评测引擎（subprocess）
+│   ├── models/              # ORM 模型（Step6 预留）
+│   ├── db/                  # 数据库引擎（Step6 预留）
+│   ├── core/                # 核心逻辑（预留）
+│   └── services/            # 业务服务（预留）
+├── problems/                # 题目配置目录（TOML/JSON）
+│   └── example/             # 示例题目：A+B Problem
+├── tests/                   # pytest 测试用例
+├── test_api.http            # VS Code REST Client 测试文件
+├── pyproject.toml           # 项目配置与依赖
+└── README.md
+```
+
+## API 接口总览
+
+接口详情以 api.md 为准，以下为快速参考。
+
+### Step1 题目管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/problems/` | 题目列表（分页） |
+| POST | `/api/problems/` | 创建题目 |
+| GET | `/api/problems/{id}` | 题目详情 |
+| DELETE | `/api/problems/{id}` | 删除题目（管理员） |
+
+### Step2 评测控制
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/judge/` | 提交代码评测 |
+| GET | `/api/languages/` | 支持的语言列表 |
+| POST | `/api/languages/` | 注册新语言 |
+
+### Step3 评测列表
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/submissions/` | 评测列表（分页、筛选） |
+| GET | `/api/submissions/{id}` | 评测详情（本人/管理员） |
+| PUT | `/api/submissions/{id}/rejudge` | 重新评测（管理员） |
+
+### Step4 用户管理
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/users/register` | 用户注册 |
+| POST | `/api/users/login` | 用户登录 |
+| GET | `/api/users/logout` | 用户登出 |
+| GET | `/api/users/` | 用户列表（管理员） |
+| GET | `/api/users/{id}` | 用户信息（本人/管理员） |
+| PUT | `/api/users/{id}/role` | 修改角色（管理员） |
+
+### Step5 日志与权限
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/logs/` | 查询评测日志 |
+| PUT | `/api/problems/{id}/public_cases` | 切换测例公开状态 |
+| GET | `/api/logs/audit` | 审计日志（管理员） |
+
+### Step6 数据持久化
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/api/reset/` | 系统重置（管理员） |
+| GET | `/api/export/` | 数据导出（管理员） |
+| POST | `/api/import/` | 数据导入（管理员） |
+
+## 默认管理员账号
+
+- 用户名：`admin`
+- 密码：`admintestpassword`
+- 执行 `POST /api/reset/` 后自动创建
+
+## 本地测试
+
+### 方式一：VS Code REST Client
+
+安装 REST Client 插件，打开项目根目录的 test_api.http，点击每个请求上方的 Send Request 即可发送。
+
+### 方式二：命令行 curl
+
+```bash
+# 健康检查
+curl http://localhost:8000/health
+
+# 系统重置
+curl -X POST http://localhost:8000/api/reset/
+
+# 注册并登录
+curl -X POST http://localhost:8000/api/users/register   -H "Content-Type: application/json"   -d '{"username":"test","password":"123456"}'
+
+curl -X POST http://localhost:8000/api/users/login   -H "Content-Type: application/json"   -d '{"username":"test","password":"123456"}'   -c cookies.txt
+
+# 携带 Cookie 的后续请求
+curl -b cookies.txt http://localhost:8000/api/problems/
+```
 
 ## 实验要求
 
 请参考 [实验说明](https://keg-course.github.io/python-docs/oj/)。
-
-### 基础模块 (共 30 分)
-
-| Step | 名称 | 说明 |
-|------|------|------|
-| Step1 | 题目管理 | 配置解析、字段校验、异常处理 |
-| Step2 | 评测控制 | 程序执行、资源限制、输出比对 |
-| Step3 | 用户系统 | 注册/更新、权限管理 |
-| Step4 | 任务状态管理 | 评测任务流转、调度 |
-| Step5 | 评测日志 | 结构化日志记录与查询 |
-| Step6 | 数据持久化 | 数据库存储、备份恢复 |
-
-### 进阶模块 (选做，最多 +10 分)
-
-| Adv | 名称 | 说明 |
-|-----|------|------|
-| Adv1 | Special Judge | 特殊题目评测 |
-| Adv2 | 前端交互 | Streamlit 极简前端 |
-| Adv3 | 安全机制 | Docker 容器控制 |
-| Adv4 | 代码查重 | 剽窃检测 |
