@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import copy
+import json as _json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Query, Request
@@ -10,17 +10,27 @@ from app.storage import (
     add_audit,
     get_audit_logs,
     get_logs,
+    get_logs_by_submission,
     get_problem,
     get_submission,
     get_user,
-    next_id,
-    save_log,
     save_problem,
 )
-from app.utils.auth import get_current_user_or_none, require_admin, require_login
+from app.utils.auth import require_admin, require_login
 from app.utils.exceptions import PermissionDenied, ProblemNotFound, SubmissionNotFound
 
 router = APIRouter(prefix="/api", tags=["logs"])
+
+
+def _parse_log_detail(log: dict) -> dict:
+    """Parse the stored detail JSON string into a results array."""
+    log = dict(log)
+    detail_raw = log.pop("detail", "[]")
+    try:
+        log["results"] = _json.loads(detail_raw) if isinstance(detail_raw, str) else (detail_raw or [])
+    except (_json.JSONDecodeError, TypeError):
+        log["results"] = []
+    return log
 
 
 @router.get("/logs/")
@@ -31,28 +41,42 @@ async def query_logs(
     page_size: int = Query(default=20, ge=1, le=100),
 ):
     user = require_login(req)
-    sub = None
+
     if submission_id:
         sub = get_submission(submission_id)
         if sub is None:
             raise SubmissionNotFound(submission_id)
-        # Permission: admin or submission owner
         if user.get("role") != "admin" and sub["user_id"] != user["user_id"]:
-            # Check if public_cases
             problem = get_problem(sub["problem_id"])
-            if problem and not problem.get("public_cases", False):
+            if problem and not problem.get("public_cases", True):
                 raise PermissionDenied("Cannot view logs for this submission")
-
-    all_logs = list(get_logs().values())
-    if submission_id:
-        all_logs = [lg for lg in all_logs if lg.get("submission_id") == submission_id]
+        all_logs = get_logs_by_submission(submission_id)
+    else:
+        all_entries = list(get_logs().values())
+        if user.get("role") != "admin":
+            filtered = []
+            for lg in all_entries:
+                if lg["user_id"] == user["user_id"]:
+                    filtered.append(lg)
+                else:
+                    problem = get_problem(lg.get("problem_id", ""))
+                    if problem and problem.get("public_cases", True):
+                        filtered.append(lg)
+            all_logs = filtered
+        else:
+            all_logs = all_entries
 
     total = len(all_logs)
     start = (page - 1) * page_size
-    items = [copy.deepcopy(lg) for lg in all_logs[start:start + page_size]]
-    # Remove password from items
-    for item in items:
-        item.pop("password", None)
+    items = [_parse_log_detail(lg) for lg in all_logs[start:start + page_size]]
+
+    add_audit({
+        "action": "query_logs",
+        "user_id": user["user_id"],
+        "username": user.get("username", ""),
+        "submission_id": submission_id or "all",
+        "ip": req.client.host if req.client else "",
+    })
 
     return ApiResponse(code=200, msg="success", data=PagedData(total=total, items=items).model_dump())
 

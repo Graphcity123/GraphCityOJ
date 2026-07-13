@@ -32,8 +32,8 @@ uvicorn app.main:app --reload --port 8000
 | Step1：题目管理 | ✅ 已完成 | 题目增删查改，分页列表，管理员删除 |
 | Step2：题目评测 | ✅ 已完成 | Python/C++ 评测，动态注册语言，时间/内存限制 |
 | Step3：评测列表 | ✅ 已完成 | 评测历史、详情、重新评测
-| Step4：用户管理 | 📝 待开始 | 注册、登录、角色管理 |
-| Step5：日志与权限 | 📝 待开始 | 日志查询、审计、测例公开控制 |
+| Step4：用户管理 | ✅ 已完成 | 注册、登录、角色管理 |
+| Step5：日志与权限 | ✅ 已完成 | 日志查询、审计、测例公开控制 |
 | Step6：持久化存储 | 📝 待开始 | SQLite 迁移、数据导出/导入 |
 
 ## 项目结构
@@ -56,8 +56,14 @@ oj-system/
 │   │   ├── auth.py          # Session 认证与权限校验
 │   │   ├── exceptions.py    # HTTP 异常类
 │   │   └── judge_engine.py  # 异步评测引擎（subprocess）
-│   ├── models/              # ORM 模型（Step6 预留）
-│   ├── db/                  # 数据库引擎（Step6 预留）
+│   ├── models/              # SQLAlchemy ORM 模型
+│   │   ├── user.py
+│   │   ├── problem.py
+│   │   ├── submission.py
+│   │   └── log.py
+│   ├── db/                  # 数据库引擎与迁移
+│   │   ├── database.py
+│   │   └── models.py
 │   ├── core/                # 核心逻辑（预留）
 │   └── services/            # 业务服务（预留）
 ├── problems/                # 题目配置目录（TOML/JSON）
