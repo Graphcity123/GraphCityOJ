@@ -18,3 +18,6 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 /work/
+
+# VS Code workspace settings (machine-specific)
+.vscode/

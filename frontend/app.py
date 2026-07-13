@@ -141,12 +141,13 @@ def _render_problems() -> None:
     st.markdown("### Problems")
 
     try:
-        data = api.list_problems(page=1, page_size=100)
+        items = api.list_problems(page=1, page_size=100)
     except RuntimeError as e:
         st.error(str(e))
         return
 
-    items = (data or {}).get("items", [])
+    if not isinstance(items, list):
+        items = []
 
     if not items:
         st.info("No problems yet.")
@@ -214,12 +215,13 @@ def _render_judge() -> None:
 
     # Problem selector
     try:
-        problems_data = api.list_problems(page=1, page_size=100)
+        all_problems = api.list_problems(page=1, page_size=100)
     except RuntimeError as e:
         st.error(str(e))
         return
 
-    all_problems = (problems_data or {}).get("items", [])
+    if not isinstance(all_problems, list):
+        all_problems = []
     problem_options = {p["id"]: f"{p['id']} — {p.get('title', '')}" for p in all_problems}
 
     selected = st.session_state.get("selected_problem")
@@ -304,7 +306,7 @@ def _render_submissions() -> None:
         st.error(str(e))
         return
 
-    items = (data or {}).get("items", [])
+    items = (data or {}).get("submissions", [])
 
     if not items:
         st.info("No submissions yet.")
@@ -312,23 +314,21 @@ def _render_submissions() -> None:
 
     for s in items:
         sid = s.get("submission_id", "?")
-        pid = s.get("problem_id", "?")
         status = s.get("status", "?")
         score = s.get("score", "?")
-        created = s.get("created_at", "")[:19]
+        counts = s.get("counts", "?")
 
         status_icon = {
             "success": "✅", "pending": "⏳", "error": "❌",
         }.get(status, "❓")
 
-        cols = st.columns([2, 2, 1, 1, 1, 1])
+        cols = st.columns([2, 2, 1, 1, 1])
         cols[0].caption(sid)
-        cols[1].markdown(pid)
-        cols[2].markdown(f"{status_icon} {status}")
-        cols[3].markdown(f"**{score}**")
-        cols[4].caption(created)
+        cols[1].markdown(f"{status_icon} {status}")
+        cols[2].markdown(f"**{score}**")
+        cols[3].caption(f"/{counts}")
 
-        if cols[5].button("Detail", key=f"detail_{sid}", use_container_width=True):
+        if cols[4].button("Detail", key=f"detail_{sid}", use_container_width=True):
             st.session_state["detail_submission"] = sid
             st.rerun()
 
@@ -344,28 +344,7 @@ def _render_submissions() -> None:
         if sub:
             st.divider()
             st.markdown(f"##### Submission {detail_sid}")
-            cols = st.columns(3)
-            cols[0].markdown(f"**Problem:** {sub.get('problem_id', '')}")
-            cols[1].markdown(f"**Language:** {sub.get('language', '')}")
-            cols[2].markdown(f"**Status:** {sub.get('status', '')}")
-
-            st.markdown(f"**Score:** {sub.get('score', 0)}")
-            st.text_area("Code", sub.get("code", ""), height=150, disabled=True)
-
-            results = sub.get("results", [])
-            if results:
-                st.markdown("**Results:**")
-                for r in results:
-                    tc_id = r.get("id", "?")
-                    tc_result = r.get("result", "?")
-                    tc_time = r.get("time", 0)
-                    tc_mem = r.get("memory", 0)
-                    icon = "✅" if tc_result == "AC" else "❌"
-                    st.markdown(f"  #{tc_id} {icon} {tc_result}  —  time: {tc_time}s  memory: {tc_mem} KB")
-
-            detail = sub.get("detail", "")
-            if detail:
-                st.markdown(f"**Detail:** {detail[:500]}")
+            st.markdown(f"**Score:** {sub.get('score', 0)} / {sub.get('counts', 0)}")
 
             if st.button("Close", use_container_width=True):
                 st.session_state.pop("detail_submission", None)
