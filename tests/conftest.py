@@ -4,6 +4,14 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 
 from app.main import app
+from app.storage import reset_storage
+
+
+@pytest.fixture(autouse=True)
+async def reset_state():
+    """Reset in-memory storage before each test."""
+    reset_storage()
+    yield
 
 
 @pytest.fixture
