@@ -1,0 +1,14 @@
+[problem]
+id = "example"
+title = "A+B Problem"
+description = "Compute the sum of two integers."
+time_limit_ms = 1000
+memory_limit_mb = 256
+
+[judge]
+compare_mode = "exact"        # exact | ignore_space | special
+language = "python"
+
+[[testcases]]
+id = 1
+score = 100
