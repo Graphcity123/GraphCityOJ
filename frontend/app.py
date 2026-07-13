@@ -265,7 +265,11 @@ def _render_judge() -> None:
         st.warning("No languages registered. Run POST /api/reset/ first.")
         return
 
-    lang_options = {l["id"]: l["name"] for l in langs}
+    lang_names = langs.get("name", []) if isinstance(langs, dict) else []
+    if not lang_names:
+        st.warning("No languages registered. Run POST /api/reset/ first.")
+        return
+    lang_options = {name: name for name in lang_names}
     sel_lang = st.selectbox(
         "Language",
         options=list(lang_options.keys()),
@@ -405,8 +409,9 @@ def _render_admin() -> None:
         try:
             langs = api.list_languages()
             if langs:
-                for l in langs:
-                    st.caption(f"{l['id']} — {l['name']}")
+                lang_names = langs.get("name", []) if isinstance(langs, dict) else []
+                for name in lang_names:
+                    st.caption(f"{name}")
             else:
                 st.warning("No languages. Reset the system.")
         except RuntimeError:
@@ -449,4 +454,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
