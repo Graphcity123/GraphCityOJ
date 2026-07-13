@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, Request
 
 from app.schemas import ApiResponse, ProblemCreate
 from app.storage import delete_problem, get_problem, get_problems, save_problem
@@ -14,24 +14,10 @@ router = APIRouter(prefix="/api/problems", tags=["problems"])
 
 
 @router.get("/")
-async def list_problems(
-    req: Request,
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-):
+async def list_problems(req: Request):
     require_login(req)
     all_problems = list(get_problems().values())
-    total = len(all_problems)
-    start = (page - 1) * page_size
-    items = []
-    for p in all_problems[start:start + page_size]:
-        items.append({
-            "id": p["id"],
-            "title": p["title"],
-            "tags": p.get("tags", []),
-            "difficulty": p.get("difficulty", ""),
-            "author": p.get("author", ""),
-        })
+    items = [{"id": p["id"], "title": p["title"]} for p in all_problems]
     return ApiResponse(code=200, msg="success", data=items)
 
 

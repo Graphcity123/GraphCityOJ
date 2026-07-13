@@ -28,6 +28,10 @@ class RateLimiter:
             )
         self._records[user_id].append(now)
 
+    def reset(self) -> None:
+        """Reset all rate-limit records (for testing)."""
+        self._records.clear()
+
 
 # Global instance used by all route handlers
 judge_rate_limiter = RateLimiter(max_requests=3, window_seconds=60)

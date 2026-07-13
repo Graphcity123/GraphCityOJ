@@ -74,10 +74,10 @@ async def set_log_visibility(req: Request, problem_id: str):
     except Exception:
         pass
 
-    if body_data is not None:
+    if body_data is not None and body_data.public_cases is not None:
         problem["public_cases"] = body_data.public_cases
     else:
-        problem["public_cases"] = not problem.get("public_cases", True)
+        problem["public_cases"] = False
 
     save_problem(problem_id, problem)
     return ApiResponse(code=200, msg="log visibility updated", data={

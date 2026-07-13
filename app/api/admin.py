@@ -131,7 +131,6 @@ async def export_data(req: Request):
             "score": s["score"],
             "counts": s.get("counts", 0),
             "details": s.get("results", []),
-            "created_at": s.get("created_at", ""),
         })
 
     data = {"users": users, "problems": problems, "submissions": submissions}

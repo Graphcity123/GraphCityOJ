@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Query, Request
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 
 from app.schemas import (
     ApiResponse,
@@ -129,31 +129,51 @@ async def submit_judge(
 @router.get("/")
 async def list_submissions(
     req: Request,
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
+    page: int | None = Query(default=None),
+    page_size: int | None = Query(default=None),
     user_id: str | None = Query(default=None),
     problem_id: str | None = Query(default=None),
     status: str | None = Query(default=None),
 ):
-    require_login(req)
+    user = require_login(req)
 
-    if not user_id and not problem_id:
+    if user_id is None and problem_id is None:
         raise SubmissionConditionError()
+
+    # Pagination: page set but page_size empty = error
+    if page is not None and page_size is None:
+        raise HTTPException(status_code=400, detail="page_size is required when page is set")
 
     all_subs = list(get_submissions().values())
 
+    # Apply filters
     if user_id:
         all_subs = [s for s in all_subs if s["user_id"] == user_id]
+    else:
+        # Without user_id: admin sees all, normal user sees only their own
+        if user.get("role") != "admin":
+            all_subs = [s for s in all_subs if s["user_id"] == user["user_id"]]
+
     if problem_id:
         all_subs = [s for s in all_subs if s["problem_id"] == problem_id]
     if status:
         all_subs = [s for s in all_subs if s["status"] == status]
 
     total = len(all_subs)
-    start = (page - 1) * page_size
+
+    # Pagination: both empty = return all; page_size only = first page
+    if page is None and page_size is None:
+        paged = all_subs
+    else:
+        if page is None:
+            page = 1
+        page_size = page_size or 20
+        start = (page - 1) * page_size
+        paged = all_subs[start:start + page_size]
+
     items = []
-    for s in all_subs[start:start + page_size]:
-        brief = {"submission_id": s["submission_id"], "status": s["status"]}
+    for s in paged:
+        brief: dict = {"submission_id": s["submission_id"], "status": s["status"]}
         if s.get("status") not in ("error", "pending"):
             brief["score"] = s.get("score", 0)
             brief["counts"] = s.get("counts", 0)
@@ -180,7 +200,7 @@ async def get_submission_detail(req: Request, submission_id: str):
 
 
 @router.put("/{submission_id}/rejudge")
-async def rejudge_submission(req: Request, submission_id: str):
+async def rejudge_submission(req: Request, submission_id: str, background_tasks: BackgroundTasks):
     require_admin(req)
     sub = get_submission(submission_id)
     if sub is None:
@@ -191,6 +211,13 @@ async def rejudge_submission(req: Request, submission_id: str):
     sub["results"] = []
     sub["detail"] = ""
     save_submission(submission_id, sub)
+
+    work_dir = settings.work_dir / f"{submission_id}_rejudge"
+    background_tasks.add_task(
+        _run_judge_and_update,
+        submission_id, sub["problem_id"], sub["language"],
+        sub["code"], work_dir, sub["user_id"],
+    )
 
     return ApiResponse(code=200, msg="rejudge started", data={
         "submission_id": submission_id,
