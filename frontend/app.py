@@ -214,7 +214,7 @@ def _render_judge() -> None:
 
     # Problem selector
     try:
-        problems_data = api.list_problems(page=1, page_size=200)
+        problems_data = api.list_problems(page=1, page_size=100)
     except RuntimeError as e:
         st.error(str(e))
         return
