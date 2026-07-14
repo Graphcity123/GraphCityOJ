@@ -10,7 +10,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 
 from app.config import settings
 from app.schemas import ApiResponse, ProblemCreate
@@ -165,6 +165,85 @@ async def remove_problem(req: Request, problem_id: str):
     if prob_dir.exists():
         shutil.rmtree(prob_dir, ignore_errors=True)
     return ApiResponse(code=200, msg="delete success", data={"id": problem_id})
+
+
+@router.post("/{problem_id}/testcases")
+async def add_testcase(req: Request, problem_id: str,
+                       test_input: str = Form(...),
+                       test_output: str = Form(...)):
+    """Add a single test case to a problem (admin only)."""
+    require_admin(req)
+    p = await get_problem(problem_id)
+    if p is None:
+        raise ProblemNotFound(problem_id)
+
+    prob_dir = settings.problems_dir / problem_id
+    prob_dir.mkdir(parents=True, exist_ok=True)
+
+    # Find next available number
+    existing = sorted([int(f.stem) for f in prob_dir.iterdir()
+                       if f.suffix == '.in' and f.stem.isdigit()])
+    n = max(existing) + 1 if existing else 1
+
+    (prob_dir / f"{n}.in").write_text(test_input, encoding="utf-8")
+    (prob_dir / f"{n}.out").write_text(test_output, encoding="utf-8")
+
+    tc_count = len([f for f in prob_dir.iterdir() if f.suffix == '.in'])
+    p["testcase_count"] = tc_count
+    await save_problem(problem_id, p)
+
+    return ApiResponse(code=200, msg="testcase added",
+                       data={"id": n, "testcase_count": tc_count})
+
+
+@router.delete("/{problem_id}/testcases/{n}")
+async def delete_testcase(req: Request, problem_id: str, n: int):
+    """Delete a single test case (admin only)."""
+    require_admin(req)
+    p = await get_problem(problem_id)
+    if p is None:
+        raise ProblemNotFound(problem_id)
+
+    prob_dir = settings.problems_dir / problem_id
+    in_file = prob_dir / f"{n}.in"
+    out_file = prob_dir / f"{n}.out"
+    if in_file.exists():
+        in_file.unlink()
+    if out_file.exists():
+        out_file.unlink()
+
+    tc_count = len([f for f in prob_dir.iterdir() if f.suffix == '.in'])
+    p["testcase_count"] = tc_count
+    await save_problem(problem_id, p)
+
+    return ApiResponse(code=200, msg="testcase deleted",
+                       data={"testcase_count": tc_count})
+
+
+@router.post("/{problem_id}/testcases/upload")
+async def reupload_testcases(req: Request, problem_id: str,
+                             testcases_zip: UploadFile = File(...)):
+    """Replace all test cases for a problem (admin only)."""
+    require_admin(req)
+    p = await get_problem(problem_id)
+    if p is None:
+        raise ProblemNotFound(problem_id)
+
+    # Delete existing test cases
+    prob_dir = settings.problems_dir / problem_id
+    for f in prob_dir.iterdir():
+        if f.suffix in ('.in', '.out'):
+            f.unlink()
+
+    # Extract and validate new ones
+    zip_content = await testcases_zip.read()
+    tc_count = _extract_and_validate_testcases(zip_content, prob_dir)
+
+    p["testcase_count"] = tc_count
+    await save_problem(problem_id, p)
+
+    return ApiResponse(code=200, msg="testcases replaced",
+                       data={"testcase_count": tc_count})
 
 
 # ── Helpers ───────────────────────────────────────────────────

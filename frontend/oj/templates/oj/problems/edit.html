@@ -12,11 +12,15 @@
     <label>描述 (Markdown)</label>
     <textarea name="description" rows="12">{{ problem.description }}</textarea>
 
-    <div style="display:flex;gap:12px">
-        <div style="flex:1"><label>时间限制 (s)</label>
-        <input type="number" name="time_limit" value="{{ problem.time_limit }}" step="0.1" min="0.1"></div>
-        <div style="flex:1"><label>内存限制 (MB)</label>
-        <input type="number" name="memory_limit" value="{{ problem.memory_limit }}" min="16"></div>
+    <div>
+        <div style="display:flex;gap:12px;margin-bottom:4px">
+            <span style="flex:1;font-weight:600;font-size:.9rem">时间限制 (s)</span>
+            <span style="flex:1;font-weight:600;font-size:.9rem">内存限制 (MB)</span>
+        </div>
+        <div style="display:flex;gap:12px">
+            <input type="number" name="time_limit" value="{{ problem.time_limit }}" step="0.1" min="0.1" style="flex:1">
+            <input type="number" name="memory_limit" value="{{ problem.memory_limit }}" min="16" style="flex:1">
+        </div>
     </div>
 
     <label>难度</label>
@@ -28,6 +32,33 @@
         <option value="expert" {% if problem.difficulty == 'expert' %}selected{% endif %}>expert</option>
     </select>
 
-    <button type="submit" class="btn btn-primary">保存修改</button>
+    <button type="submit" name="action" value="save" class="btn btn-primary">保存修改</button>
+</form>
+
+<hr style="margin:24px 0;border-color:var(--border)">
+
+<h3>测试点管理 ({{ problem.testcase_count }} 个)</h3>
+
+<form method="post" enctype="multipart/form-data" style="max-width:600px;margin-bottom:16px">
+    {% csrf_token %}
+    <label>重新上传测试数据 (.zip)</label>
+    <div style="display:flex;gap:8px">
+        <input type="file" name="tc_zip" accept=".zip" style="flex:1">
+        <button type="submit" name="action" value="reupload" class="btn">上传替换</button>
+    </div>
+</form>
+
+<form method="post" style="max-width:600px">
+    {% csrf_token %}
+    <label>新增测试点</label>
+    <div class="sample">
+        <div style="margin-bottom:4px"><strong>输入：</strong></div>
+        <textarea name="tc_input" rows="3" style="width:100%;font-family:'JetBrains Mono',monospace;padding:8px;border:1px solid var(--border);background:var(--bg)"></textarea>
+    </div>
+    <div class="sample" style="margin-top:8px">
+        <div style="margin-bottom:4px"><strong>输出：</strong></div>
+        <textarea name="tc_output" rows="3" style="width:100%;font-family:'JetBrains Mono',monospace;padding:8px;border:1px solid var(--border);background:var(--bg)"></textarea>
+    </div>
+    <button type="submit" name="action" value="add_tc" class="btn" style="margin-top:8px">添加测试点</button>
 </form>
 {% endblock %}

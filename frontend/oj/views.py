@@ -208,15 +208,36 @@ def problem_edit(request, folder_id: str):
         return redirect('problem_list')
 
     if request.method == 'POST':
+        action = request.POST.get('action', 'save')
+        if action == 'add_tc':
+            inp = request.POST.get('tc_input', '')
+            out = request.POST.get('tc_output', '')
+            if inp and out:
+                api.add_testcase(request, folder_id, inp, out)
+                messages.success(request, '测试点已添加。')
+            return redirect('problem_edit', folder_id=folder_id)
+        elif action == 'del_tc':
+            n = request.POST.get('tc_n', '')
+            if n.isdigit():
+                api.delete_testcase(request, folder_id, int(n))
+                messages.success(request, f'测试点 {n} 已删除。')
+            return redirect('problem_edit', folder_id=folder_id)
+        elif action == 'reupload':
+            zip_file = request.FILES.get('tc_zip')
+            if zip_file:
+                api.reupload_testcases(request, folder_id, zip_file)
+                messages.success(request, '测试点已重新上传。')
+            return redirect('problem_edit', folder_id=folder_id)
+
         data = {
             "id": folder_id,
             "title": request.POST.get('title', problem.get('title', '')),
             "description": request.POST.get('description',
                                             problem.get('description', '')),
-            "input_description": request.POST.get('input_description', ''),
-            "output_description": request.POST.get('output_description', ''),
-            "constraints": request.POST.get('constraints', ''),
-            "hint": request.POST.get('hint', ''),
+            "input_description": problem.get('input_description', ''),
+            "output_description": problem.get('output_description', ''),
+            "constraints": problem.get('constraints', ''),
+            "hint": problem.get('hint', ''),
             "time_limit": float(request.POST.get('time_limit',
                                                  problem.get('time_limit', 1.0))),
             "memory_limit": int(request.POST.get('memory_limit',

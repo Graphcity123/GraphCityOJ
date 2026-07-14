@@ -221,6 +221,25 @@ def update_problem(request: HttpRequest, problem_id: str,
     return api_put(request, f'/api/problems/{problem_id}', json=data)
 
 
+def add_testcase(request: HttpRequest, problem_id: str,
+                 test_input: str, test_output: str) -> dict[str, Any] | None:
+    return api_post(request, f'/api/problems/{problem_id}/testcases',
+                    data={'test_input': test_input,
+                          'test_output': test_output})
+
+
+def delete_testcase(request: HttpRequest, problem_id: str,
+                    n: int) -> dict[str, Any] | None:
+    return api_delete(request, f'/api/problems/{problem_id}/testcases/{n}')
+
+
+def reupload_testcases(request: HttpRequest, problem_id: str,
+                       zip_file) -> dict[str, Any] | None:
+    return api_post(request, f'/api/problems/{problem_id}/testcases/upload',
+                    files={'testcases_zip': (zip_file.name, zip_file.read(),
+                                             'application/zip')})
+
+
 def delete_problem(request: HttpRequest,
                    problem_id: str) -> dict[str, Any] | None:
     """Delete a problem (admin only)."""
