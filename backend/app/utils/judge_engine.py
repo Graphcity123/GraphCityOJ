@@ -131,17 +131,26 @@ async def _run_testcase(
     memory_limit_mb: int,
     tc_id: int,
 ) -> dict:
-    """Run a single test case. Time via perf_counter, memory via getrusage."""
+    """Run a single test case inside firejail sandbox."""
     cmd = run_cmd.format(src=src_path, exe=exe_path)
+    mem_bytes = memory_limit_mb * 1024 * 1024
+    timeout_sec = int(time_limit) + 2  # small cushion
+
+    # Wrap in firejail for cgroup-based memory isolation
+    jail_cmd = (
+        f"firejail --quiet --noprofile --net=none "
+        f"--rlimit-as={mem_bytes} "
+        f"--timeout=00:{timeout_sec:02d}:00 "
+        f"-- {cmd}"
+    )
 
     try:
         proc = await asyncio.create_subprocess_shell(
-            cmd,
+            jail_cmd,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             cwd=work_dir,
-            preexec_fn=_set_limits(memory_limit_mb),
         )
 
         start_time = time.perf_counter()
@@ -203,13 +212,3 @@ def _compare_output(got: str, expected: str) -> bool:
     return got_lines == exp_lines
 
 
-def _set_limits(memory_mb: int):
-    """Return a preexec_fn that sets resource limits."""
-    def _fn():
-        mem_bytes = memory_mb * 1024 * 1024
-        try:
-            resource.setrlimit(resource.RLIMIT_AS, (mem_bytes, mem_bytes))
-            resource.setrlimit(resource.RLIMIT_CPU, (60, 60))
-        except Exception:
-            pass
-    return _fn
