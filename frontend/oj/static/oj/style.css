@@ -344,6 +344,9 @@ pre { position: relative; }
 pre:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
 
+pre .copy-btn { position: absolute; top: 4px; right: 4px; opacity: 0; transition: opacity .2s; }
+pre:hover .copy-btn { opacity: 1; }
+
 /* Button font consistency */
 button, input[type=submit], .btn {
     font-family: 'HarmonyOS Sans SC', -apple-system, sans-serif;
