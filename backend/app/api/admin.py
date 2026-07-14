@@ -75,7 +75,8 @@ async def system_reset(req: Request):
     require_admin(req)
     await reset_storage()
     await _create_default_admin()
-    # Clear session to log out current user
+    from app.main import _sync_problems_from_disk
+    await _sync_problems_from_disk()
     req.session.clear()
     return ApiResponse(code=200, msg="system reset successfully", data=None)
 
