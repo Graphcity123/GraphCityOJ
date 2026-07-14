@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -8,10 +10,25 @@ from starlette.responses import JSONResponse
 
 from app.config import settings
 from app.api import problems, judge, submissions, users, logs, admin, auth
+from app.storage import get_user, get_languages
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create default admin and languages on startup if not exist
+    if get_user("admin") is None:
+        from app.api.admin import _create_default_admin as _cda
+        _cda()
+    if not get_languages():
+        from app.api.admin import _register_default_languages as _rdl
+        _rdl()
+    yield
+
 
 app = FastAPI(
     title=settings.app_name,
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key)

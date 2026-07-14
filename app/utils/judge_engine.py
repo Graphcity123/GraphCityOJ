@@ -9,7 +9,7 @@ from app.storage import get_languages, get_problem
 from app.schemas import EvalStatus
 
 
-_TOTAL_SCORE = 100
+_PER_TESTCASE_SCORE = 10
 
 
 async def run_judge(
@@ -57,7 +57,8 @@ async def run_judge(
     run_cmd = lang_info["run_cmd"]
     extension = lang_info.get("file_ext", ".py")
 
-    per_tc_score = _TOTAL_SCORE / len(testcases)
+    per_tc_score = _PER_TESTCASE_SCORE
+    total_counts = len(testcases) * _PER_TESTCASE_SCORE
 
     # Write source file
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -81,7 +82,7 @@ async def run_judge(
                 "results": [{"id": tc_idx + 1, "result": "CE", "time": 0.0, "memory": 0}
                             for tc_idx in range(len(testcases))],
                 "detail": stderr.decode("utf-8", errors="replace")[:500],
-                "counts": _TOTAL_SCORE,
+                "counts": len(testcases) * _PER_TESTCASE_SCORE,
             }
 
     # Run each testcase
@@ -109,7 +110,7 @@ async def run_judge(
         "score": round(total_score, 1),
         "results": results,
         "detail": "",
-        "counts": _TOTAL_SCORE,
+        "counts": total_counts,
     }
 
 

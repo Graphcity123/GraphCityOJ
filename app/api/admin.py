@@ -74,10 +74,9 @@ def _register_default_languages():
 
 @router.post("/reset/")
 async def system_reset(req: Request):
-    # Allow reset even without admin (for CI/testing)
+    require_admin(req)
     reset_storage()
     _create_default_admin()
-    _register_default_languages()
     # Clear session to log out current user
     req.session.clear()
     return ApiResponse(code=200, msg="system reset successfully", data=None)
