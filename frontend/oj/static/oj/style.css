@@ -216,7 +216,7 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 
 .tc-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    grid-template-columns: repeat(8, 1fr);
     gap: 10px;
     margin: 12px 0;
     max-width: 100%;
