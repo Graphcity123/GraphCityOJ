@@ -33,9 +33,11 @@
 
     <label>难度</label>
     <select name="difficulty">
-        {% for d in "beginner,easy,medium,hard,expert".split(",") %}
-        <option value="{{ d }}" {% if problem.difficulty == d %}selected{% endif %}>{{ d }}</option>
-        {% endfor %}
+        <option value="beginner" {% if problem.difficulty == 'beginner' %}selected{% endif %}>beginner</option>
+        <option value="easy" {% if problem.difficulty == 'easy' %}selected{% endif %}>easy</option>
+        <option value="medium" {% if problem.difficulty == 'medium' %}selected{% endif %}>medium</option>
+        <option value="hard" {% if problem.difficulty == 'hard' %}selected{% endif %}>hard</option>
+        <option value="expert" {% if problem.difficulty == 'expert' %}selected{% endif %}>expert</option>
     </select>
 
     <button type="submit" class="btn btn-primary">保存修改</button>
