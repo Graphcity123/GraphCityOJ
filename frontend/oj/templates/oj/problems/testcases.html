@@ -23,8 +23,11 @@
         <form method="post" style="display:inline" onsubmit="return confirm('删除测试点 {{ i }}？')">
             {% csrf_token %}
             <input type="hidden" name="tc_n" value="{{ i }}">
-            <button type="submit" name="action" value="del_tc" class="btn btn-sm btn-danger"
-                    style="font-family:'JetBrains Mono',monospace">#{{ i }} ✕</button>
+            <button type="submit" name="action" value="del_tc"
+                    style="font-family:'JetBrains Mono',monospace;background:none;border:1px solid var(--border);color:var(--text-secondary);cursor:pointer;padding:2px 8px;font-size:12px"
+                    onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'"
+                    onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-secondary)'"
+                    >#{{ i }}</button>
         </form>
     {% endfor %}
     </div>
@@ -37,9 +40,9 @@
     <input type="file" name="in_file" accept=".in" style="margin-bottom:4px">
     <input type="file" name="out_file" accept=".out,.ans" style="margin-bottom:8px">
     <textarea name="tc_input" rows="3" placeholder="输入数据"
-              style="font-family:'JetBrains Mono',monospace;padding:10px;border:1px solid var(--border);background:var(--bg);font-size:13px;margin-bottom:6px"></textarea>
+              style="font-family:'JetBrains Mono',monospace;margin-bottom:6px"></textarea>
     <textarea name="tc_output" rows="3" placeholder="期望输出"
-              style="font-family:'JetBrains Mono',monospace;padding:10px;border:1px solid var(--border);background:var(--bg);font-size:13px"></textarea>
+              style="font-family:'JetBrains Mono',monospace"></textarea>
     <button type="submit" name="action" value="add_tc" class="btn btn-primary">添加</button>
 </form>
 {% endblock %}
