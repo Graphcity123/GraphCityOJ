@@ -25,6 +25,10 @@ def render_markdown(text: str) -> str:
     if not text:
         return ""
 
+    # Strip custom directives like ::cute-table{...}
+    import re as _re
+    text = _re.sub(r"::cute-table\{[^}]*\}", "", text)
+
     html = md.markdown(
         text,
         extensions=[
