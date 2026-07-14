@@ -43,7 +43,10 @@
     <p>⏳ 评测中...</p>
     <p class="hint">页面将自动刷新。</p>
 </div>
-<script>setTimeout(function(){location.reload();},1500);</script>
+<script>
+var _poll = (parseInt(localStorage.getItem('gcoj_poll_'+'{{ submission_id }}'))||0);
+if(_poll < 20){ localStorage.setItem('gcoj_poll_'+'{{ submission_id }}',_poll+1); setTimeout(function(){location.reload();},3000); }
+</script>
 {% endif %}
 
 {% if can_view_full and code %}
