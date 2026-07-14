@@ -134,7 +134,7 @@ async def _run_testcase(
     """Run a single test case inside firejail sandbox."""
     cmd = run_cmd.format(src=src_path, exe=exe_path)
     mem_bytes = memory_limit_mb * 1024 * 1024
-    timeout_sec = int(time_limit) + 2  # small cushion
+    timeout_sec = max(int(time_limit) + 5, 10)  # firejail needs ~2s startup
 
     # Wrap in firejail for cgroup-based memory isolation
     hh = timeout_sec // 3600
