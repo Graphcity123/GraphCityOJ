@@ -131,6 +131,7 @@ async def get_problem_detail(req: Request, problem_id: str):
         "source": p.get("source", ""),
         "time_limit": p.get("time_limit", 3.0),
         "memory_limit": p.get("memory_limit", 128),
+        "testcase_count": p.get("testcase_count", 0),
         "author": p.get("author", ""),
         "difficulty": p.get("difficulty", ""),
     })

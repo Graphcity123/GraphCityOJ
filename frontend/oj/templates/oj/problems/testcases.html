@@ -16,7 +16,7 @@
 </form>
 
 {% if problem.testcase_count > 0 %}
-<div style="max-width:600px;margin-bottom:16px">
+<div style="max-width:600px;margin:0 auto 16px">
     <strong>现有测试点：</strong>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
     {% for i in problem.testcase_count|range_n %}
@@ -31,7 +31,7 @@
 </div>
 {% endif %}
 
-<form method="post" style="max-width:600px">
+<form method="post" style="max-width:600px;margin:0 auto">
     {% csrf_token %}
     <label>新增测试点</label>
     <textarea name="tc_input" rows="3" placeholder="输入数据"
