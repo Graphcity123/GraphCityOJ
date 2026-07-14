@@ -126,7 +126,7 @@ def submission_result(request, submission_id: str):
 
 @login_required
 def submission_log(request, submission_id: str):
-    """Detailed judge log."""
+    """Detailed judge log with code display."""
     user = request.session.get('user', {})
     log_data = api.get_submission_log(request, submission_id)
     sub = api.get_submission(request, submission_id) or {}
@@ -134,6 +134,8 @@ def submission_log(request, submission_id: str):
         'submission_id': submission_id,
         'log_data': log_data,
         'problem_id': sub.get('problem_id', ''),
+        'code': sub.get('code', ''),
+        'language': sub.get('language', 'python'),
         'user': user,
     })
 

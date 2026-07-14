@@ -43,3 +43,21 @@ def render_markdown(text: str) -> str:
         },
     )
     return mark_safe(html)
+
+
+@register.filter(name='highlight_code')
+def highlight_code(code: str, language: str = "python") -> str:
+    """Syntax-highlight code using Pygments. Language defaults to python."""
+    if not code:
+        return ""
+    try:
+        from pygments import highlight
+        from pygments.formatters import HtmlFormatter
+        from pygments.lexers import get_lexer_by_name
+        lexer = get_lexer_by_name(language, stripall=True)
+    except Exception:
+        from pygments.lexers import PythonLexer
+        lexer = PythonLexer()
+    formatter = HtmlFormatter(cssclass="highlight", style="monokai")
+    result = highlight(code, lexer, formatter)
+    return mark_safe(result)
