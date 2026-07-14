@@ -4,8 +4,8 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings
 
-# Auto-detect project root: go up 3 levels from app/config.py
-_BASE_DIR = Path(__file__).resolve().parent.parent.parent
+# Auto-detect backend root: go up 2 levels from app/config.py
+_BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class Settings(BaseSettings):
