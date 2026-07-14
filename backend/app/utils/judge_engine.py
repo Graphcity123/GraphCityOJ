@@ -139,11 +139,11 @@ async def _run_testcase(
     mm = (timeout_sec % 3600) // 60
     ss = timeout_sec % 60
     jail_cmd = (
-        f"/usr/bin/time -f '%e %M' -o /tmp/gcoj_tc_{tc_id} "
         f"firejail --quiet --noprofile "
         f"--rlimit-as={mem_bytes} "
         f"--timeout={hh:02d}:{mm:02d}:{ss:02d} "
-        f"-- {cmd}"
+        f"-- /usr/bin/time -f '%e %M' -o /tmp/gcoj_tc_{tc_id} "
+        f"{cmd}"
     )
 
     try:
