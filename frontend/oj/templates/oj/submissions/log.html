@@ -3,11 +3,11 @@
 {% block title %}评测日志 {{ submission_id }} — GCOJ{% endblock %}
 
 {% block content %}
-<div style="display:flex;justify-content:space-between;align-items:center">
-<h2 style="margin:0;border:none;padding:0">评测日志</h2>
-{% if problem_id %}<a href="{% url 'problem_detail' problem_id %}" class="btn btn-sm">← 返回原题</a>{% endif %}
+<h2>评测日志</h2>
+<div class="sub-meta-row">
+    <span>提交编号：<strong>{{ submission_id }}</strong></span>
+    {% if problem_id %}<a href="{% url 'problem_detail' problem_id %}" class="btn btn-sm">← 返回原题</a>{% endif %}
 </div>
-<p>提交编号：<strong>{{ submission_id }}</strong></p>
 
 {% if not log_data or not log_data.details %}
 <div class="polling-msg">

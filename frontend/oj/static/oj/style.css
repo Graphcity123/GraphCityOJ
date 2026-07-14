@@ -216,7 +216,10 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 .result-table th, .result-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
 .result-table th { font-size: .85rem; color: var(--text-secondary); }
 .result-actions { display: flex; gap: 12px; margin-top: 16px; }
-.submission-id { color: var(--text-secondary); margin-bottom: 8px; }
+.sub-meta-row {
+    display: flex; justify-content: space-between; align-items: center;
+    margin: 8px 0 20px; color: var(--text-secondary); font-size: .95rem;
+}
 .polling-msg { text-align: center; padding: 40px; }
 .polling-msg .hint { color: var(--text-secondary); font-size: .85rem; margin-top: 8px; }
 
