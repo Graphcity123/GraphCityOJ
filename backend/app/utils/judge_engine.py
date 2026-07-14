@@ -161,7 +161,7 @@ async def _run_testcase(
         try:
             stdout, stderr = await asyncio.wait_for(
                 proc.communicate(input=test_input.encode()),
-                timeout=time_limit,
+                timeout=timeout_sec,
             )
         except asyncio.TimeoutError:
             elapsed = round(time.perf_counter() - start_time, 2)
