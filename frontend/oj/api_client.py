@@ -41,48 +41,41 @@ def _api_call(request: HttpRequest, method: str, path: str,
         from django.contrib import messages
         messages.error(request,
                        'Cannot connect to backend. Is the OJ server running?')
-        # Return a dummy 503 response
         resp = requests.Response()
         resp.status_code = 503
         return resp
 
+    # Always persist cookies, even on error responses
     _save_cookies(request, session)
     return resp
 
 
 def api_get(request: HttpRequest, path: str,
             **kwargs: Any) -> dict[str, Any] | None:
-    """GET request to the backend API. Returns parsed data or raises."""
     resp = _api_call(request, 'GET', path, **kwargs)
-    return _unwrap(resp)
+    return _unwrap(request, resp)
 
 
 def api_post(request: HttpRequest, path: str,
              **kwargs: Any) -> dict[str, Any] | None:
-    """POST request to the backend API."""
     resp = _api_call(request, 'POST', path, **kwargs)
-    return _unwrap(resp)
+    return _unwrap(request, resp)
 
 
 def api_put(request: HttpRequest, path: str,
             **kwargs: Any) -> dict[str, Any] | None:
-    """PUT request to the backend API."""
     resp = _api_call(request, 'PUT', path, **kwargs)
-    return _unwrap(resp)
+    return _unwrap(request, resp)
 
 
 def api_delete(request: HttpRequest, path: str,
                **kwargs: Any) -> dict[str, Any] | None:
-    """DELETE request to the backend API."""
     resp = _api_call(request, 'DELETE', path, **kwargs)
-    return _unwrap(resp)
+    return _unwrap(request, resp)
 
 
-def _unwrap(resp: requests.Response) -> dict[str, Any] | None:
-    """Parse API response, return data or None on error.
-
-    Error messages are stored in Django's messages framework.
-    """
+def _unwrap(request: HttpRequest,
+            resp: requests.Response) -> dict[str, Any] | None:
     status = resp.status_code
     if status == 503:
         return None
@@ -96,11 +89,9 @@ def _unwrap(resp: requests.Response) -> dict[str, Any] | None:
     if code != 200:
         msg = body.get('msg', body.get('detail', 'Unknown error'))
         from django.contrib import messages
-        messages.error(None, msg)
-        # On 401, signal that user needs to re-login
+        messages.error(request, msg)
         if code == 401:
-            from django.contrib import messages as m
-            m.warning(None, 'Session expired. Please log in again.')
+            messages.warning(request, 'Session expired. Please log in again.')
         return None
 
     return body.get('data')

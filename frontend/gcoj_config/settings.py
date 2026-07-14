@@ -45,8 +45,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gcoj_config.wsgi.application'
 
-# No database needed — frontend is stateless
-DATABASES = {}
+# Dummy DB — use cookie-based sessions, no real database needed
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# Use cookie-based sessions and messages (no DB writes)
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 LANGUAGE_CODE = 'zh-hans'
 TIME_ZONE = 'Asia/Shanghai'
