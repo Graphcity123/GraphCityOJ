@@ -5,7 +5,11 @@
 {% block content %}
 <div class="problem-detail-layout">
     <div class="problem-body">
-        <h2>{{ problem.id }} — {{ problem.title }}</h2>
+        <h2 class="problem-header">
+            <span class="prob-id-lg">{{ problem.id }}</span>
+            <span class="prob-divider"></span>
+            <span>{{ problem.title }}</span>
+        </h2>
         <div class="problem-meta">
             <span>⏱ {{ problem.time_limit }}s</span>
             <span>📦 {{ problem.memory_limit }} MB</span>
