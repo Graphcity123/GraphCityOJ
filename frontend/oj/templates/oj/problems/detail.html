@@ -7,11 +7,8 @@
     <div class="detail-header-body">
         <h1>{{ problem.title }}</h1>
         <div class="detail-meta">
-            <span>⏱ {{ problem.time_limit }}s</span>
-            <span>📦 {{ problem.memory_limit }} MB</span>
-            {% if problem.difficulty %}
-            <span class="difficulty difficulty-{{ problem.difficulty }}">{{ problem.difficulty }}</span>
-            {% endif %}
+            <span>时间限制 / {{ problem.time_limit }}s</span>
+            <span>空间限制 / {{ problem.memory_limit }} MB</span>
         </div>
     </div>
 </header>
