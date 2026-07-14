@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-import resource
 import signal
-import time
 from pathlib import Path
 
 from app.storage import get_languages, get_problem
@@ -136,11 +134,12 @@ async def _run_testcase(
     mem_bytes = memory_limit_mb * 1024 * 1024
     timeout_sec = max(int(time_limit) + 5, 10)  # firejail needs ~2s startup
 
-    # Wrap in firejail for cgroup-based memory isolation
+    # Wrap in firejail. Use /usr/bin/time to measure actual CPU+wall time
     hh = timeout_sec // 3600
     mm = (timeout_sec % 3600) // 60
     ss = timeout_sec % 60
     jail_cmd = (
+        f"/usr/bin/time -f '%e %M' -o /tmp/gcoj_tc_{tc_id} "
         f"firejail --quiet --noprofile "
         f"--rlimit-as={mem_bytes} "
         f"--timeout={hh:02d}:{mm:02d}:{ss:02d} "
@@ -156,31 +155,31 @@ async def _run_testcase(
             cwd=work_dir,
         )
 
-        start_time = time.perf_counter()
-
         try:
             stdout, stderr = await asyncio.wait_for(
                 proc.communicate(input=test_input.encode()),
                 timeout=timeout_sec,
             )
         except asyncio.TimeoutError:
-            elapsed = round(time.perf_counter() - start_time, 2)
             try:
                 os.kill(proc.pid, signal.SIGKILL)
                 await proc.wait()
             except ProcessLookupError:
                 pass
             return {"id": tc_id, "result": "TLE",
-                    "time": elapsed, "memory": 0}
+                    "time": round(time_limit, 2), "memory": 0}
 
-        elapsed = round(time.perf_counter() - start_time, 2)
-
-        # Memory from OS: max RSS of child processes (KB on Linux)
+        # Parse actual time + memory from /usr/bin/time output
+        elapsed = round(time_limit, 2)
+        mem_mb = 0
         try:
-            usage = resource.getrusage(resource.RUSAGE_CHILDREN)
-            mem_mb = usage.ru_maxrss // 1024
+            with open(f"/tmp/gcoj_tc_{tc_id}") as f:
+                vals = f.read().strip().split()
+                if vals:
+                    elapsed = round(float(vals[0]), 2)
+                    mem_mb = int(vals[1]) // 1024 if len(vals) > 1 else 0
         except Exception:
-            mem_mb = 0
+            pass
 
         # MLE check against OS-reported max
         if mem_mb > memory_limit_mb:
