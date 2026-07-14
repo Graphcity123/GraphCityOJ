@@ -42,14 +42,14 @@ async def query_submission_log(req: Request, submission_id: str):
     is_owner = sub["user_id"] == user["user_id"]
     is_admin = user.get("role") == "admin"
 
-    if not is_admin and not is_owner:
-        raise PermissionDenied("Cannot view logs for this submission")
-
     problem = await get_problem(sub["problem_id"])
     public_cases = problem.get("public_cases", True) if problem else True
 
     details = _parse_submission_results(sub)
-    if not is_admin and not public_cases:
+    # Only owner/admin can see test case details
+    if not is_admin and not is_owner:
+        details = []
+    elif not is_admin and not public_cases:
         details = []
 
     await add_audit({
