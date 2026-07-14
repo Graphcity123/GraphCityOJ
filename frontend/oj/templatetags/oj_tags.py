@@ -25,8 +25,6 @@ def render_markdown(text: str) -> str:
     if not text:
         return ""
 
-    text = _expand_merged_cells(text)
-
     html = md.markdown(
         text,
         extensions=[
@@ -44,6 +42,10 @@ def render_markdown(text: str) -> str:
             },
         },
     )
+
+    # Post-process: merge ^ cells into rowspan
+    html = _merge_table_cells(html)
+
     return mark_safe(html)
 
 
@@ -110,26 +112,117 @@ def banner_class(details: list) -> str:
     return "result-partial"
 
 
-def _expand_merged_cells(text: str) -> str:
-    """Expand ^ shorthand in markdown tables (same as cell above)."""
-    lines = text.split("\n")
-    result = []
-    prev_cells: list[str] = []
-    in_table = False
-    for line in lines:
-        stripped = line.strip()
-        if stripped.startswith("|") and stripped.endswith("|"):
-            cells = [c.strip() for c in stripped[1:-1].split("|")]
-            if all(c.strip("-: ").replace("-", "").replace(":", "") == ""
-                   for c in cells):
-                result.append(line)
-                continue
-            for i, c in enumerate(cells):
-                if c == "^" and i < len(prev_cells):
-                    cells[i] = prev_cells[i]
-            prev_cells = cells
-            result.append("| " + " | ".join(cells) + " |")
-        else:
-            prev_cells = []
-            result.append(line)
-    return "\n".join(result)
+def _merge_table_cells(html: str) -> str:
+    """Post-process HTML tables: convert ^ cells into rowspan."""
+    import re
+
+    def _merge_table(table_html: str) -> str:
+        rows = re.findall(r"<tr>(.*?)</tr>", table_html, re.DOTALL)
+        if not rows:
+            return table_html
+
+        # Parse each row's cells
+        parsed: list[list[str]] = []
+        for row in rows:
+            cells = re.findall(r"<(t[dh])(.*?)>(.*?)</t[dh]>", row, re.DOTALL)
+            parsed.append(cells)
+
+        num_cols = max((len(r) for r in parsed), default=0)
+        # Track how many rows to skip per column (rowspan in progress)
+        rowspan_remaining = [0] * num_cols
+
+        new_rows = []
+        for ri, cells in enumerate(parsed):
+            new_cells: list[str] = []
+            col_idx = 0
+            for tag, attrs, content in cells:
+                # Skip columns consumed by ongoing rowspan
+                while col_idx < num_cols and rowspan_remaining[col_idx] > 0:
+                    rowspan_remaining[col_idx] -= 1
+                    col_idx += 1
+                if col_idx >= num_cols:
+                    break
+
+                stripped = content.strip()
+                if stripped == "^":
+                    # Find above cell to merge with
+                    rowspan_remaining[col_idx] += 0  # mark for counting
+                    # Count consecutive ^ below this one
+                    span = 1
+                    for r2 in range(ri + 1, len(parsed)):
+                        if col_idx < len(parsed[r2]):
+                            below = parsed[r2][col_idx][2].strip() if col_idx < len(parsed[r2]) else ""
+                            if below == "^":
+                                span += 1
+                                # Mark this future row as consumed
+                                pass
+                            else:
+                                break
+                    # Actually, we need to modify the cell ABOVE, not here.
+                    # For rowspan implementation, we'd need to go back and edit
+                    # the first occurrence. This is complex in regex.
+                    # Simpler approach: expand values first, then detect dupes.
+                    if ri > 0 and col_idx < len(parsed[ri - 1]):
+                        prev_content = parsed[ri - 1][col_idx][2]
+                        new_cells.append(f"<{tag}{attrs}>{prev_content}</{tag}>")
+                        col_idx += 1
+                        continue
+                    new_cells.append(f"<{tag}{attrs}>^</{tag}>")
+                else:
+                    new_cells.append(f"<{tag}{attrs}>{content}</{tag}>")
+                col_idx += 1
+
+            new_rows.append("<tr>" + "".join(new_cells) + "</tr>")
+
+        # Actually do rowspan properly: scan columns, find ^ sequences
+        final_cells = [[f"<{tag}{attrs}>{content}</{tag}>"
+                        for tag, attrs, content in row]
+                       for row in parsed]
+
+        for ci in range(num_cols):
+            ri = 0
+            while ri < len(final_cells):
+                if ci < len(final_cells[ri]):
+                    tag_match = re.match(r"<(t[dh])", final_cells[ri][ci])
+                    content_match = re.search(r">(.*?)</t[dh]>", final_cells[ri][ci])
+                    if content_match and content_match.group(1).strip() == "^":
+                        # Found a ^ cell, now count how many consecutive ^ below
+                        span = 1
+                        for r2 in range(ri + 1, len(final_cells)):
+                            if ci < len(final_cells[r2]):
+                                c2 = re.search(r">(.*?)</t[dh]>", final_cells[r2][ci])
+                                if c2 and c2.group(1).strip() == "^":
+                                    span += 1
+                                else:
+                                    break
+                        # Copy value from cell above
+                        if ri > 0 and ci < len(final_cells[ri - 1]):
+                            above = final_cells[ri - 1][ci]
+                            # Add rowspan to the first cell in the sequence
+                            # Actually, the merge starts at ri-1 (the cell with real value)
+                            base = final_cells[ri - 1][ci]
+                            base = re.sub(r"<(t[dh])", r'<\1 rowspan="{}"'.format(span + 1), base)
+                            final_cells[ri - 1][ci] = base
+                            # Remove the ^ cells in this span
+                            for r2 in range(ri, ri + span):
+                                if ci < len(final_cells[r2]):
+                                    final_cells[r2][ci] = ""
+                        ri += span
+                        continue
+                ri += 1
+
+        # Rebuild rows, removing empty cells
+        rebuilt = []
+        for row_cells in final_cells:
+            non_empty = [c for c in row_cells if c]
+            if non_empty:
+                rebuilt.append("<tr>" + "".join(non_empty) + "</tr>")
+
+        return "<table>" + "".join(rebuilt) + "</table>"
+
+    # Find and process all tables
+    tables = re.findall(r"<table>.*?</table>", html, re.DOTALL)
+    for t in tables:
+        merged = _merge_table(t)
+        html = html.replace(t, merged)
+    return html
