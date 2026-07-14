@@ -462,6 +462,11 @@ def _render_result() -> None:
             tc_time = tc.get("time", 0)
             tc_mem = tc.get("memory", 0)
 
+            if tc_time < 1.0:
+                time_str = f":clock1: {int(tc_time * 1000)}ms"
+            else:
+                time_str = f":clock1: {tc_time:.2f}s"
+
             color_map = {
                 "AC": "green",
                 "WA": "red",
@@ -474,7 +479,7 @@ def _render_result() -> None:
 
             cols = st.columns([3, 2, 2, 2])
             cols[0].markdown(f":{color}[**{result}**]  Case #{tc_id}")
-            cols[1].caption(f":clock1: {tc_time}s")
+            cols[1].caption(time_str)
             cols[2].caption(f":package: {tc_mem} MB")
 
     st.divider()
