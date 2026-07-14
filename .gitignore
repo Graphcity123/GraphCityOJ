@@ -24,3 +24,6 @@ htmlcov/
 
 # Claude Code
 .claude/
+
+# Test scratch files
+problems/example/test.cpp
