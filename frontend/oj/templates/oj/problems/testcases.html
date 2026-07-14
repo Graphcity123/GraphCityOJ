@@ -6,7 +6,7 @@
 <h2>测试点管理：{{ problem.title }}</h2>
 <p>共 <strong>{{ problem.testcase_count }}</strong> 个测试点</p>
 
-<form method="post" enctype="multipart/form-data" style="max-width:600px;margin-bottom:20px">
+<form method="post" enctype="multipart/form-data" style="max-width:600px;margin:0 auto 20px">
     {% csrf_token %}
     <label>重新上传测试数据 (.zip)</label>
     <div style="display:flex;gap:8px">
