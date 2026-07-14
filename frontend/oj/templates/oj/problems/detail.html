@@ -1,4 +1,5 @@
 {% extends 'oj/base.html' %}
+{% load oj_tags %}
 {% block title %}{{ problem.title }} — GCOJ{% endblock %}
 
 {% block content %}
@@ -13,16 +14,16 @@
             {% endif %}
         </div>
         {% if problem.description %}
-        <div class="prob-section"><h3>Description</h3><p>{{ problem.description }}</p></div>
+        <div class="prob-section markdown-body">{{ problem.description|markdown }}</div>
         {% endif %}
         {% if problem.input_description %}
-        <div class="prob-section"><h3>Input</h3><p>{{ problem.input_description }}</p></div>
+        <div class="prob-section markdown-body">{{ problem.input_description|markdown }}</div>
         {% endif %}
         {% if problem.output_description %}
-        <div class="prob-section"><h3>Output</h3><p>{{ problem.output_description }}</p></div>
+        <div class="prob-section markdown-body">{{ problem.output_description|markdown }}</div>
         {% endif %}
         {% if problem.constraints %}
-        <div class="prob-section"><h3>Constraints</h3><p>{{ problem.constraints }}</p></div>
+        <div class="prob-section markdown-body">{{ problem.constraints|markdown }}</div>
         {% endif %}
         {% if problem.samples %}
         <div class="prob-section">
@@ -36,7 +37,7 @@
         </div>
         {% endif %}
         {% if problem.hint %}
-        <div class="prob-section hint"><h3>Hint</h3><p>{{ problem.hint }}</p></div>
+        <div class="prob-section hint">{{ problem.hint|markdown }}</div>
         {% endif %}
     </div>
 
