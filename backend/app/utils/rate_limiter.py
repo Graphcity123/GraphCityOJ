@@ -34,4 +34,4 @@ class RateLimiter:
 
 
 # Global instance used by all route handlers
-judge_rate_limiter = RateLimiter(max_requests=3, window_seconds=60)
+judge_rate_limiter = RateLimiter(max_requests=5, window_seconds=20)

@@ -97,7 +97,8 @@ async def submit_judge(
     req: Request, body: JudgeRequest, background_tasks: BackgroundTasks,
 ):
     user = require_login(req)
-    judge_rate_limiter.check(user["user_id"])
+    if user.get("role") != "admin":
+        judge_rate_limiter.check(user["user_id"])
 
     problem = await get_problem(body.problem_id)
     if problem is None:
