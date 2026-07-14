@@ -21,3 +21,6 @@ htmlcov/
 
 # VS Code workspace settings (machine-specific)
 .vscode/
+
+# Claude Code
+.claude/
