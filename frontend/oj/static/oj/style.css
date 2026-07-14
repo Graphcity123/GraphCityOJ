@@ -162,8 +162,12 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 }
 .submit-card input[type=file]::file-selector-button {
     font-family: inherit; font-size: .8rem; padding: 6px 14px;
-    margin-right: 10px; border: 1px solid var(--border);
-    background: var(--bg); color: var(--text); cursor: pointer;
+    margin-right: 10px; border: none;
+    background: var(--primary); color: #fff; cursor: pointer;
+    transition: background .15s;
+}
+.submit-card input[type=file]::file-selector-button:hover {
+    background: var(--primary-dark);
 }
 .submit-card textarea {
     width: 100%; padding: 12px; border: 1px solid var(--border);
