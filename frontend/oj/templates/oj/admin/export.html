@@ -1,8 +1,8 @@
 {% extends 'oj/base.html' %}
-{% block title %}Export — GCOJ{% endblock %}
+{% block title %}导出数据 — GCOJ{% endblock %}
 
 {% block content %}
-<h2>Export Data</h2>
+<h2>导出数据</h2>
 <pre class="export-json">{{ data_json }}</pre>
-<a href="{% url 'admin_reset' %}" class="btn">← Back to Admin</a>
+<a href="{% url 'admin_reset' %}" class="btn">← 返回管理</a>
 {% endblock %}

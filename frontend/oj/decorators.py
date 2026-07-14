@@ -22,7 +22,7 @@ def admin_required(view_func):
     def wrapper(request, *args, **kwargs):
         user = request.session.get('user', {})
         if user.get('role') != 'admin':
-            messages.error(request, 'Admin access required.')
+            messages.error(request, '需要管理员权限。')
             return redirect('problem_list')
         return view_func(request, *args, **kwargs)
     return wrapper

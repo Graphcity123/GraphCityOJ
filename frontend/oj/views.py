@@ -22,9 +22,9 @@ def login_view(request):
         user_data = api.login(request, username, password)
         if user_data:
             request.session['user'] = user_data
-            messages.success(request, f'Welcome, {user_data["username"]}!')
+            messages.success(request, f'欢迎，{user_data["username"]}！')
             return redirect('problem_list')
-        messages.error(request, 'Invalid username or password.')
+        messages.error(request, '用户名或密码错误。')
     return render(request, 'oj/auth/login.html')
 
 
@@ -35,11 +35,11 @@ def register_view(request):
         password = request.POST.get('password', '')
         if len(username) < 3 or len(password) < 6:
             messages.error(request,
-                           'Username must be 3+ chars, password 6+ chars.')
+                           '用户名需3-40字符，密码需6位以上。')
         else:
             result = api.register(request, username, password)
             if result is not None:
-                messages.success(request, 'Registered! Please log in.')
+                messages.success(request, '注册成功！请登录。')
                 return redirect('login')
     return render(request, 'oj/auth/register.html')
 
@@ -48,7 +48,7 @@ def logout_view(request):
     """Logout."""
     api.logout(request)
     request.session.flush()
-    messages.success(request, 'Logged out.')
+    messages.success(request, '已登出。')
     return redirect('login')
 
 
@@ -72,7 +72,7 @@ def problem_detail(request, folder_id: str):
     languages = api.list_languages(request)
     user = request.session.get('user', {})
     if problem is None:
-        messages.error(request, 'Problem not found.')
+        messages.error(request, '题目未找到。')
         return redirect('problem_list')
     return render(request, 'oj/problems/detail.html', {
         'problem': problem,
@@ -94,7 +94,7 @@ def submission_create(request, folder_id: str):
     language = request.POST.get('language', 'python')
 
     if not code.strip():
-        messages.error(request, 'Code cannot be empty.')
+        messages.error(request, '代码不能为空。')
         return redirect('problem_detail', folder_id=folder_id)
 
     result = api.submit_judge(request, folder_id, language, code)
@@ -102,7 +102,7 @@ def submission_create(request, folder_id: str):
         return redirect('problem_detail', folder_id=folder_id)
 
     sub_id = result.get('submission_id', '')
-    messages.success(request, f'Submitted! ID: {sub_id}')
+    messages.success(request, f'已提交！编号： {sub_id}')
     return redirect('submission_result', submission_id=sub_id)
 
 
@@ -160,11 +160,11 @@ def submission_rejudge(request, submission_id: str):
     """Rejudge a submission (admin only)."""
     user = request.session.get('user', {})
     if user.get('role') != 'admin':
-        messages.error(request, 'Admin only.')
+        messages.error(request, '仅限管理员。')
         return redirect('submission_list')
 
     api.rejudge(request, submission_id)
-    messages.success(request, f'Rejudge started for {submission_id}.')
+    messages.success(request, f'重新评测已启动： {submission_id}.')
     return redirect('submission_result', submission_id=submission_id)
 
 
@@ -175,14 +175,12 @@ def submission_rejudge(request, submission_id: str):
 @admin_required
 def admin_reset(request):
     """Reset the system."""
-    if not _check_admin(request):
-        return redirect('problem_list')
     if request.method == 'POST':
         api.reset_system(request)
         user_data = api.login(request, 'admin', 'admintestpassword')
         if user_data:
             request.session['user'] = user_data
-        messages.success(request, 'System reset. Logged in as admin.')
+        messages.success(request, '系统已重置。已以管理员身份登录。')
         return redirect('problem_list')
     return render(request, 'oj/admin/dashboard.html',
                   {'user': request.session.get('user', {})})
@@ -191,8 +189,6 @@ def admin_reset(request):
 @admin_required
 def admin_export(request):
     """Export all data as JSON download."""
-    if not _check_admin(request):
-        return redirect('problem_list')
     data = api.export_data(request)
     if data is None:
         return redirect('problem_list')
@@ -206,15 +202,13 @@ def admin_export(request):
 @admin_required
 def admin_import(request):
     """Import data from JSON upload."""
-    if not _check_admin(request):
-        return redirect('problem_list')
     if request.method == 'POST':
         uploaded = request.FILES.get('data_file')
         if uploaded:
             api.import_data(request, uploaded.read())
-            messages.success(request, 'Import completed.')
+            messages.success(request, '导入完成。')
             return redirect('problem_list')
-        messages.error(request, 'No file uploaded.')
+        messages.error(request, '未上传文件。')
     return render(request, 'oj/admin/import.html',
                   {'user': request.session.get('user', {})})
 
@@ -222,8 +216,6 @@ def admin_import(request):
 @admin_required
 def admin_users(request):
     """User management."""
-    if not _check_admin(request):
-        return redirect('problem_list')
     data = api.get_users(request)
     return render(request, 'oj/admin/users.html', {
         'users': data.get('users', []),

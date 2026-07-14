@@ -91,7 +91,7 @@ def _unwrap(request: HttpRequest,
         from django.contrib import messages
         messages.error(request, msg)
         if code == 401:
-            messages.warning(request, 'Session expired. Please log in again.')
+            messages.warning(request, '会话已过期，请重新登录。')
         return None
 
     return body.get('data')

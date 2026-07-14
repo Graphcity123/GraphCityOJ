@@ -1,31 +1,31 @@
 {% extends 'oj/base.html' %}
-{% block title %}Result {{ submission_id }} — GCOJ{% endblock %}
+{% block title %}评测结果 {{ submission_id }} — GCOJ{% endblock %}
 
 {% block content %}
-<h2>Submission Result</h2>
-<p class="submission-id">ID: <strong>{{ submission_id }}</strong></p>
+<h2>评测结果</h2>
+<p class="submission-id">提交编号：<strong>{{ submission_id }}</strong></p>
 
 {% if not log_data %}
 <div class="polling-msg">
-    <p>⏳ Waiting for judge to complete...</p>
-    <p class="hint">This page will refresh automatically.</p>
+    <p>⏳ 等待评测完成...</p>
+    <p class="hint">页面将自动刷新。</p>
 </div>
 <script>setTimeout(function(){location.reload();},1500);</script>
 {% else %}
     {% with score=log_data.score|default:0 counts=log_data.counts|default:0 %}
     {% if score == counts and counts > 0 %}
-    <div class="result-banner result-ac">✅ All Passed — {{ score }} / {{ counts }}</div>
+    <div class="result-banner result-ac">✅ 全部通过 — {{ score }} / {{ counts }}</div>
     {% elif score > 0 %}
-    <div class="result-banner result-partial">⚠️ Partial — {{ score }} / {{ counts }}</div>
+    <div class="result-banner result-partial">⚠️ 部分通过 — {{ score }} / {{ counts }}</div>
     {% else %}
-    <div class="result-banner result-fail">❌ Failed — {{ score }} / {{ counts }}</div>
+    <div class="result-banner result-fail">❌ 未通过 — {{ score }} / {{ counts }}</div>
     {% endif %}
     {% endwith %}
 
     {% if log_data.details %}
     <table class="result-table">
         <thead>
-            <tr><th>#</th><th>Result</th><th>Time</th><th>Memory</th></tr>
+            <tr><th>#</th><th>结果</th><th>用时</th><th>内存</th></tr>
         </thead>
         <tbody>
         {% for tc in log_data.details %}
@@ -41,11 +41,11 @@
     {% endif %}
 
     <div class="result-actions">
-        <a href="{% url 'submission_log' submission_id %}" class="btn">View Log</a>
+        <a href="{% url 'submission_log' submission_id %}" class="btn">查看日志</a>
         {% if user.role == 'admin' %}
         <form method="post" action="{% url 'submission_rejudge' submission_id %}" style="display:inline">
             {% csrf_token %}
-            <button type="submit" class="btn">Rejudge</button>
+            <button type="submit" class="btn">重新评测</button>
         </form>
         {% endif %}
     </div>

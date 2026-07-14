@@ -1,11 +1,9 @@
 {% extends 'oj/base.html' %}
-{% block title %}Problems — GCOJ{% endblock %}
-
+{% block title %}题目列表 — GCOJ{% endblock %}
 {% block content %}
-<h2>Problems</h2>
-
+<h2>题目列表</h2>
 {% if not problems %}
-<p class="empty">No problems yet. {% if user.role == 'admin' %}Use the backend API to create one.{% endif %}</p>
+<p class="empty">还没有题目。</p>
 {% else %}
 <div class="problem-grid">
     {% for p in problems %}

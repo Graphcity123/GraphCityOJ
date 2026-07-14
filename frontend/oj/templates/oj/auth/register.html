@@ -1,17 +1,16 @@
 {% extends 'oj/base.html' %}
-{% block title %}Register — GCOJ{% endblock %}
-
+{% block title %}注册 — GCOJ{% endblock %}
 {% block content %}
 <div class="auth-container">
-    <h2>Register</h2>
+    <h2>注册</h2>
     <form method="post" class="auth-form">
         {% csrf_token %}
-        <label>Username (3-40 characters)</label>
+        <label>用户名（3-40 字符）</label>
         <input type="text" name="username" required autofocus>
-        <label>Password (6+ characters)</label>
+        <label>密码（6 位以上）</label>
         <input type="password" name="password" required>
-        <button type="submit" class="btn btn-primary">Register</button>
+        <button type="submit" class="btn btn-primary">注册</button>
     </form>
-    <p class="auth-switch">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+    <p class="auth-switch">已有账号？<a href="{% url 'login' %}">登录</a></p>
 </div>
 {% endblock %}

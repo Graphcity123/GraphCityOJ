@@ -77,6 +77,7 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 .auth-form { display: flex; flex-direction: column; gap: 12px; }
 .auth-form label { font-weight: 600; font-size: .9rem; }
 .auth-form input, .auth-form select, .auth-form textarea {
+    font-family: inherit;
     padding: 10px 12px; border: 1px solid var(--border); font-size: .95rem;
     background: var(--bg); color: var(--text); transition: border-color .15s;
 }
@@ -87,6 +88,7 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 
 /* Buttons */
 .btn {
+    font-family: inherit;
     display: inline-block; padding: 10px 20px; border: 1px solid var(--border);
     background: var(--card-bg); color: var(--text); font-size: .9rem;
     cursor: pointer; text-align: center; transition: all .15s;
@@ -107,7 +109,7 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 .problem-card:hover { border-left-color: var(--primary); background: #f8fafc; text-decoration: none; }
 .prob-id { font-family: monospace; background: var(--code-bg); color: var(--code-text); padding: 2px 10px; font-size: .85rem; }
 .prob-title { font-weight: 600; flex: 1; color: var(--text); }
-.tag { background: var(--bg); color: var(--text-secondary); padding: 2px 8px; font-size: .75rem; border: 1px solid var(--border); }
+.tag { font-family: inherit; background: var(--bg); color: var(--text-secondary); padding: 2px 8px; font-size: .75rem; border: 1px solid var(--border); }
 
 /* Problem detail */
 .problem-detail-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }

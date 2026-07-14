@@ -1,16 +1,15 @@
 {% extends 'oj/base.html' %}
-{% block title %}Log {{ submission_id }} — GCOJ{% endblock %}
+{% block title %}评测日志 {{ submission_id }} — GCOJ{% endblock %}
 
 {% block content %}
-<h2>Judge Log</h2>
-<p>Submission: <strong>{{ submission_id }}</strong></p>
+<h2>评测日志</h2>
+<p>提交编号：<strong>{{ submission_id }}</strong></p>
 
 {% if log_data %}
-    <p>Score: <strong>{{ log_data.score }} / {{ log_data.counts }}</strong></p>
-
+    <p>得分：<strong>{{ log_data.score }} / {{ log_data.counts }}</strong></p>
     {% if log_data.details %}
     <table class="result-table">
-        <thead><tr><th>#</th><th>Result</th><th>Time</th><th>Memory</th></tr></thead>
+        <thead><tr><th>#</th><th>结果</th><th>用时</th><th>内存</th></tr></thead>
         <tbody>
         {% for tc in log_data.details %}
         <tr class="tc-{{ tc.result|lower }}">
@@ -24,8 +23,8 @@
     </table>
     {% endif %}
 {% else %}
-<p>No log data available.</p>
+<p>暂无日志数据。</p>
 {% endif %}
 
-<a href="{% url 'submission_result' submission_id %}" class="btn">Back to Result</a>
+<a href="{% url 'submission_result' submission_id %}" class="btn">返回结果</a>
 {% endblock %}

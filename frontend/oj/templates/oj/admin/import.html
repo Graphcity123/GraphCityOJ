@@ -1,13 +1,13 @@
 {% extends 'oj/base.html' %}
-{% block title %}Import — GCOJ{% endblock %}
+{% block title %}导入数据 — GCOJ{% endblock %}
 
 {% block content %}
-<h2>Import Data</h2>
+<h2>导入数据</h2>
 <form method="post" enctype="multipart/form-data" class="auth-form">
     {% csrf_token %}
-    <label>JSON File (export format)</label>
+    <label>JSON 文件（导出格式）</label>
     <input type="file" name="data_file" accept=".json" required>
-    <button type="submit" class="btn btn-primary">Upload & Import</button>
+    <button type="submit" class="btn btn-primary">上传并导入</button>
 </form>
-<a href="{% url 'admin_reset' %}" class="btn">← Back to Admin</a>
+<a href="{% url 'admin_reset' %}" class="btn">← 返回管理</a>
 {% endblock %}

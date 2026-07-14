@@ -1,36 +1,36 @@
 {% extends 'oj/base.html' %}
-{% block title %}Admin — GCOJ{% endblock %}
+{% block title %}管理面板 — GCOJ{% endblock %}
 
 {% block content %}
-<h2>Admin Panel</h2>
+<h2>管理面板</h2>
 
 <div class="admin-grid">
     <div class="admin-card">
-        <h3>System Reset</h3>
-        <p>Clear all data and recreate default admin.</p>
+        <h3>系统重置</h3>
+        <p>清空所有数据，重建默认管理员账户。</p>
         <form method="post" action="{% url 'admin_reset' %}">
             {% csrf_token %}
             <button type="submit" class="btn btn-danger"
-                    onclick="return confirm('Reset ALL data?')">Reset System</button>
+                    onclick="return confirm('确认重置所有数据？')">重置系统</button>
         </form>
     </div>
 
     <div class="admin-card">
-        <h3>Export Data</h3>
-        <p>Download all data as JSON.</p>
-        <a href="{% url 'admin_export' %}" class="btn">Export</a>
+        <h3>导出数据</h3>
+        <p>将所有数据导出为 JSON 文件。</p>
+        <a href="{% url 'admin_export' %}" class="btn">导出</a>
     </div>
 
     <div class="admin-card">
-        <h3>Import Data</h3>
-        <p>Restore data from a JSON export.</p>
-        <a href="{% url 'admin_import' %}" class="btn">Import</a>
+        <h3>导入数据</h3>
+        <p>从 JSON 文件恢复数据。</p>
+        <a href="{% url 'admin_import' %}" class="btn">导入</a>
     </div>
 
     <div class="admin-card">
-        <h3>User Management</h3>
-        <p>View and manage user roles.</p>
-        <a href="{% url 'admin_users' %}" class="btn">Manage Users</a>
+        <h3>用户管理</h3>
+        <p>查看和管理用户角色。</p>
+        <a href="{% url 'admin_users' %}" class="btn">管理用户</a>
     </div>
 </div>
 {% endblock %}

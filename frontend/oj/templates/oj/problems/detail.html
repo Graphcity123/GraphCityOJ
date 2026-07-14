@@ -27,11 +27,11 @@
         {% endif %}
         {% if problem.samples %}
         <div class="prob-section">
-            <h3>Samples</h3>
+            <h3>样例</h3>
             {% for s in problem.samples %}
             <div class="sample">
-                <div class="sample-in"><strong>Input:</strong><pre>{{ s.input }}</pre></div>
-                <div class="sample-out"><strong>Output:</strong><pre>{{ s.output }}</pre></div>
+                <div class="sample-in"><strong>输入：</strong><pre>{{ s.input }}</pre></div>
+                <div class="sample-out"><strong>输出：</strong><pre>{{ s.output }}</pre></div>
             </div>
             {% endfor %}
         </div>
@@ -42,19 +42,19 @@
     </div>
 
     <div class="submit-panel">
-        <h3>Submit Code</h3>
+        <h3>提交代码</h3>
         <form method="post" action="{% url 'submit' folder_id %}">
             {% csrf_token %}
-            <label>Language</label>
+            <label>语言</label>
             <select name="language">
                 {% for lang in languages %}
                 <option value="{{ lang }}">{{ lang }}</option>
                 {% endfor %}
             </select>
-            <label>Code</label>
-            <textarea name="code" rows="12" placeholder="Write your code here..."
+            <label>代码</label>
+            <textarea name="code" rows="12" placeholder="在此处编写代码..."
                       style="font-family:'JetBrains Mono',monospace"></textarea>
-            <button type="submit" class="btn btn-primary submit-btn">Submit</button>
+            <button type="submit" class="btn btn-primary submit-btn">提交评测</button>
         </form>
     </div>
 </div>
