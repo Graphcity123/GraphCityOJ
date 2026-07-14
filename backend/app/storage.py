@@ -211,8 +211,10 @@ async def get_audit_logs() -> list[dict[str, Any]]:
 # ── Dict ↔ ORM ────────────────────────────────────────────────
 
 def _problem_to_dict(p: ProblemModel) -> dict[str, Any]:
+    # Prefer disk file for description if it exists
+    desc = _load_md_from_disk(p.id) or p.description
     return {
-        "id": p.id, "title": p.title, "description": p.description,
+        "id": p.id, "title": p.title, "description": desc,
         "input_description": p.input_description,
         "output_description": p.output_description,
         "constraints": p.constraints, "hint": p.hint,
@@ -343,6 +345,16 @@ def _update_model(model: Any, data: dict[str, Any]) -> None:
     for key, value in data.items():
         if hasattr(model, key):
             setattr(model, key, value)
+
+
+def _load_md_from_disk(problem_id: str) -> str | None:
+    """Load problem.md from disk if it exists."""
+    from pathlib import Path
+    from app.config import settings
+    md_file = settings.problems_dir / problem_id / "problem.md"
+    if md_file.exists():
+        return md_file.read_text(encoding="utf-8")
+    return None
 
 
 def _load_testcases_from_disk(
