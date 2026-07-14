@@ -74,6 +74,19 @@ def first_fail(details: list) -> str:
     return ""
 
 
+RESULT_NAMES = {
+    "AC": "Accepted", "WA": "Wrong Answer",
+    "TLE": "Time Limit Exceeded", "MLE": "Memory Limit Exceeded",
+    "RE": "Runtime Error", "CE": "Compile Error",
+}
+
+
+@register.filter(name='result_name')
+def result_name(code: str) -> str:
+    """Map short result code to full name."""
+    return RESULT_NAMES.get(code, code)
+
+
 @register.filter(name='banner_class')
 def banner_class(details: list) -> str:
     """Return CSS class for the result banner based on first failure."""
