@@ -10,19 +10,7 @@
     <input type="text" name="title" value="{{ problem.title }}" required>
 
     <label>描述 (Markdown)</label>
-    <textarea name="description" rows="8">{{ problem.description }}</textarea>
-
-    <label>输入说明</label>
-    <input type="text" name="input_description" value="{{ problem.input_description }}">
-
-    <label>输出说明</label>
-    <input type="text" name="output_description" value="{{ problem.output_description }}">
-
-    <label>数据范围</label>
-    <input type="text" name="constraints" value="{{ problem.constraints }}">
-
-    <label>提示</label>
-    <input type="text" name="hint" value="{{ problem.hint }}">
+    <textarea name="description" rows="12">{{ problem.description }}</textarea>
 
     <div style="display:flex;gap:12px">
         <div style="flex:1"><label>时间限制 (s)</label>
