@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+.env
+.pytest_cache/
+logs/
+*.db
+*.sqlite3
+.DS_Store
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+/work/
+
+# VS Code workspace settings (machine-specific)
+.vscode/
+
+# Claude Code
+.claude/
+
+# Test scratch files
+problems/example/test.cpp

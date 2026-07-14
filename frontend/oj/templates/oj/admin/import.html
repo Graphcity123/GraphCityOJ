@@ -1,0 +1,13 @@
+{% extends 'oj/base.html' %}
+{% block title %}Import — GCOJ{% endblock %}
+
+{% block content %}
+<h2>Import Data</h2>
+<form method="post" enctype="multipart/form-data" class="auth-form">
+    {% csrf_token %}
+    <label>JSON File (export format)</label>
+    <input type="file" name="data_file" accept=".json" required>
+    <button type="submit" class="btn btn-primary">Upload & Import</button>
+</form>
+<a href="{% url 'admin_reset' %}" class="btn">← Back to Admin</a>
+{% endblock %}

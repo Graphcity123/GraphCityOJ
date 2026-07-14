@@ -1,0 +1,26 @@
+{% extends 'oj/base.html' %}
+{% block title %}Users — GCOJ{% endblock %}
+
+{% block content %}
+<h2>User Management</h2>
+{% if users %}
+<table class="submission-table">
+    <thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Joined</th><th>Submits</th><th>Resolved</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+    <tr>
+        <td><code>{{ u.user_id }}</code></td>
+        <td>{{ u.username }}</td>
+        <td><span class="badge badge-{{ u.role }}">{{ u.role }}</span></td>
+        <td>{{ u.join_time }}</td>
+        <td>{{ u.submit_count }}</td>
+        <td>{{ u.resolve_count }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p class="empty">No users.</p>
+{% endif %}
+<a href="{% url 'admin_reset' %}" class="btn">← Back to Admin</a>
+{% endblock %}

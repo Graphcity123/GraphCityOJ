@@ -1,0 +1,24 @@
+{% extends 'oj/base.html' %}
+{% block title %}Problems — GCOJ{% endblock %}
+
+{% block content %}
+<h2>Problems</h2>
+
+{% if not problems %}
+<p class="empty">No problems yet. {% if user.role == 'admin' %}Use the backend API to create one.{% endif %}</p>
+{% else %}
+<div class="problem-grid">
+    {% for p in problems %}
+    <a href="{% url 'problem_detail' p.id %}" class="problem-card">
+        <span class="prob-id">{{ p.id }}</span>
+        <span class="prob-title">{{ p.title }}</span>
+        <span class="prob-tags">
+            {% for tag in p.tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </span>
+    </a>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

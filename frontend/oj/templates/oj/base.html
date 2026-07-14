@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GCOJ{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'oj/style.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/" class="brand">⚡ GCOJ</a>
+            {% if user and user.user_id %}
+            <a href="/" class="nav-link">Problems</a>
+            <a href="/submissions/" class="nav-link">Submissions</a>
+            {% endif %}
+        </div>
+        <div class="nav-right">
+            {% if user and user.user_id %}
+            <span class="nav-user">{{ user.username }}</span>
+            <span class="nav-role">{{ user.role }}</span>
+            {% if user.role == 'admin' %}
+            <a href="/admin/reset/" class="nav-link admin-link">Admin</a>
+            {% endif %}
+            <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+            {% else %}
+            <a href="{% url 'login' %}" class="nav-link">Login</a>
+            <a href="{% url 'register' %}" class="nav-link">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Flash messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for msg in messages %}
+        <div class="message message-{{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main content -->
+    <main class="main-content">
+    {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="theme-dots">
+            <span class="dot" data-theme="default" style="background:var(--primary)"></span>
+            <span class="dot" data-theme="ocean" style="background:#0ea5e9"></span>
+            <span class="dot" data-theme="forest" style="background:#10b981"></span>
+            <span class="dot" data-theme="sunset" style="background:#f43f5e"></span>
+        </div>
+        <p>GCOJ &mdash; Online Judge System</p>
+    </footer>
+
+    <script>
+    // Theme switcher
+    const THEMES = {
+        default: {'--primary':'#6366f1','--primary-dark':'#4f46e5','--bg':'#f8fafc','--card-bg':'#ffffff','--text':'#1e293b','--text-secondary':'#64748b','--border':'#e2e8f0','--code-bg':'#1e293b','--code-text':'#e2e8f0','--accent':'#818cf8'},
+        ocean:   {'--primary':'#0ea5e9','--primary-dark':'#0284c7','--bg':'#f0f9ff','--card-bg':'#ffffff','--text':'#0f172a','--text-secondary':'#475569','--border':'#e0f2fe','--code-bg':'#0f172a','--code-text':'#bae6fd','--accent':'#38bdf8'},
+        forest:  {'--primary':'#10b981','--primary-dark':'#059669','--bg':'#f0fdf4','--card-bg':'#ffffff','--text':'#14532d','--text-secondary':'#4d7c0f','--border':'#dcfce7','--code-bg':'#14532d','--code-text':'#bbf7d0','--accent':'#34d399'},
+        sunset:  {'--primary':'#f43f5e','--primary-dark':'#e11d48','--bg':'#fff1f2','--card-bg':'#ffffff','--text':'#4c0519','--text-secondary':'#9d174d','--border':'#ffe4e6','--code-bg':'#4c0519','--code-text':'#fecdd3','--accent':'#fb7185'},
+    };
+
+    document.querySelectorAll('.dot').forEach(dot => {
+        dot.addEventListener('click', () => {
+            const theme = THEMES[dot.dataset.theme];
+            Object.entries(theme).forEach(([prop, val]) => {
+                document.documentElement.style.setProperty(prop, val);
+            });
+            localStorage.setItem('gcoj-theme', dot.dataset.theme);
+        });
+    });
+
+    // Load saved theme
+    const saved = localStorage.getItem('gcoj-theme');
+    if (saved && THEMES[saved]) {
+        Object.entries(THEMES[saved]).forEach(([prop, val]) => {
+            document.documentElement.style.setProperty(prop, val);
+        });
+    }
+    </script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

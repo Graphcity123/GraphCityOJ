@@ -1,0 +1,53 @@
+{% extends 'oj/base.html' %}
+{% block title %}Result {{ submission_id }} — GCOJ{% endblock %}
+
+{% block content %}
+<h2>Submission Result</h2>
+<p class="submission-id">ID: <strong>{{ submission_id }}</strong></p>
+
+{% if not log_data %}
+<div class="polling-msg">
+    <p>⏳ Waiting for judge to complete...</p>
+    <p class="hint">This page will refresh automatically.</p>
+</div>
+<script>setTimeout(function(){location.reload();},1500);</script>
+{% else %}
+    {% with score=log_data.score|default:0 counts=log_data.counts|default:0 %}
+    {% if score == counts and counts > 0 %}
+    <div class="result-banner result-ac">✅ All Passed — {{ score }} / {{ counts }}</div>
+    {% elif score > 0 %}
+    <div class="result-banner result-partial">⚠️ Partial — {{ score }} / {{ counts }}</div>
+    {% else %}
+    <div class="result-banner result-fail">❌ Failed — {{ score }} / {{ counts }}</div>
+    {% endif %}
+    {% endwith %}
+
+    {% if log_data.details %}
+    <table class="result-table">
+        <thead>
+            <tr><th>#</th><th>Result</th><th>Time</th><th>Memory</th></tr>
+        </thead>
+        <tbody>
+        {% for tc in log_data.details %}
+        <tr class="tc-{{ tc.result|lower }}">
+            <td>{{ tc.id }}</td>
+            <td><strong class="badge badge-{{ tc.result|lower }}">{{ tc.result }}</strong></td>
+            <td>{% if tc.time < 1.0 %}{{ tc.time|floatformat:0 }}ms{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
+            <td>{{ tc.memory }} MB</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <div class="result-actions">
+        <a href="{% url 'submission_log' submission_id %}" class="btn">View Log</a>
+        {% if user.role == 'admin' %}
+        <form method="post" action="{% url 'submission_rejudge' submission_id %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit" class="btn">Rejudge</button>
+        </form>
+        {% endif %}
+    </div>
+{% endif %}
+{% endblock %}

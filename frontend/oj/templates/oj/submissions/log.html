@@ -1,0 +1,31 @@
+{% extends 'oj/base.html' %}
+{% block title %}Log {{ submission_id }} — GCOJ{% endblock %}
+
+{% block content %}
+<h2>Judge Log</h2>
+<p>Submission: <strong>{{ submission_id }}</strong></p>
+
+{% if log_data %}
+    <p>Score: <strong>{{ log_data.score }} / {{ log_data.counts }}</strong></p>
+
+    {% if log_data.details %}
+    <table class="result-table">
+        <thead><tr><th>#</th><th>Result</th><th>Time</th><th>Memory</th></tr></thead>
+        <tbody>
+        {% for tc in log_data.details %}
+        <tr class="tc-{{ tc.result|lower }}">
+            <td>{{ tc.id }}</td>
+            <td><strong class="badge badge-{{ tc.result|lower }}">{{ tc.result }}</strong></td>
+            <td>{% if tc.time < 1.0 %}{% widthratio tc.time 1 1000 %}ms{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
+            <td>{{ tc.memory }} MB</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+{% else %}
+<p>No log data available.</p>
+{% endif %}
+
+<a href="{% url 'submission_result' submission_id %}" class="btn">Back to Result</a>
+{% endblock %}

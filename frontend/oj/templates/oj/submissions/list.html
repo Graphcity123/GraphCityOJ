@@ -1,0 +1,35 @@
+{% extends 'oj/base.html' %}
+{% block title %}Submissions — GCOJ{% endblock %}
+
+{% block content %}
+<h2>Submissions</h2>
+
+{% if is_admin %}
+<form method="get" class="filter-form">
+    <input type="text" name="user_id" placeholder="User ID" value="{{ request.GET.user_id }}">
+    <input type="text" name="problem_id" placeholder="Problem ID" value="{{ request.GET.problem_id }}">
+    <button type="submit" class="btn">Filter</button>
+</form>
+{% endif %}
+
+{% if not submissions %}
+<p class="empty">No submissions found.</p>
+{% else %}
+<table class="submission-table">
+    <thead>
+        <tr><th>ID</th><th>Problem</th><th>Status</th><th>Score</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for s in submissions %}
+    <tr>
+        <td><code>{{ s.submission_id }}</code></td>
+        <td>{{ s.problem_id|default:'?' }}</td>
+        <td><span class="badge badge-{{ s.status|lower }}">{{ s.status }}</span></td>
+        <td>{{ s.score|default:'?' }} / {{ s.counts|default:'?' }}</td>
+        <td><a href="{% url 'submission_result' s.submission_id %}" class="btn btn-sm">View</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endblock %}

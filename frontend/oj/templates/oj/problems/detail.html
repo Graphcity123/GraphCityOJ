@@ -1,0 +1,60 @@
+{% extends 'oj/base.html' %}
+{% block title %}{{ problem.title }} — GCOJ{% endblock %}
+
+{% block content %}
+<div class="problem-detail-layout">
+    <div class="problem-body">
+        <h2>{{ problem.id }} — {{ problem.title }}</h2>
+        <div class="problem-meta">
+            <span>⏱ {{ problem.time_limit }}s</span>
+            <span>📦 {{ problem.memory_limit }} MB</span>
+            {% if problem.difficulty %}
+            <span class="difficulty difficulty-{{ problem.difficulty }}">{{ problem.difficulty }}</span>
+            {% endif %}
+        </div>
+        {% if problem.description %}
+        <div class="prob-section"><h3>Description</h3><p>{{ problem.description }}</p></div>
+        {% endif %}
+        {% if problem.input_description %}
+        <div class="prob-section"><h3>Input</h3><p>{{ problem.input_description }}</p></div>
+        {% endif %}
+        {% if problem.output_description %}
+        <div class="prob-section"><h3>Output</h3><p>{{ problem.output_description }}</p></div>
+        {% endif %}
+        {% if problem.constraints %}
+        <div class="prob-section"><h3>Constraints</h3><p>{{ problem.constraints }}</p></div>
+        {% endif %}
+        {% if problem.samples %}
+        <div class="prob-section">
+            <h3>Samples</h3>
+            {% for s in problem.samples %}
+            <div class="sample">
+                <div class="sample-in"><strong>Input:</strong><pre>{{ s.input }}</pre></div>
+                <div class="sample-out"><strong>Output:</strong><pre>{{ s.output }}</pre></div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% if problem.hint %}
+        <div class="prob-section hint"><h3>Hint</h3><p>{{ problem.hint }}</p></div>
+        {% endif %}
+    </div>
+
+    <div class="submit-panel">
+        <h3>Submit Code</h3>
+        <form method="post" action="{% url 'submit' folder_id %}">
+            {% csrf_token %}
+            <label>Language</label>
+            <select name="language">
+                {% for lang in languages %}
+                <option value="{{ lang }}">{{ lang }}</option>
+                {% endfor %}
+            </select>
+            <label>Code</label>
+            <textarea name="code" rows="12" placeholder="Write your code here..."
+                      style="font-family:'JetBrains Mono',monospace"></textarea>
+            <button type="submit" class="btn btn-primary submit-btn">Submit</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

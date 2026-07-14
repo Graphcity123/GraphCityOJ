@@ -1,0 +1,8 @@
+{% extends 'oj/base.html' %}
+{% block title %}Export — GCOJ{% endblock %}
+
+{% block content %}
+<h2>Export Data</h2>
+<pre class="export-json">{{ data_json }}</pre>
+<a href="{% url 'admin_reset' %}" class="btn">← Back to Admin</a>
+{% endblock %}
