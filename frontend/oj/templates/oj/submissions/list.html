@@ -19,9 +19,9 @@
     </thead>
     <tbody>
     {% for s in submissions %}
-    <tr>
+    <tr class="clickable-row" onclick="location.href='{% url 'submission_result' s.submission_id %}'" style="cursor:pointer">
         <td><code>{{ s.submission_id }}</code></td>
-        <td>{% if s.problem_id %}<a href="{% url 'problem_detail' s.problem_id %}">{{ s.problem_id }}</a>{% else %}?{% endif %}</td>
+        <td>{% if s.problem_id %}<a href="{% url 'problem_detail' s.problem_id %}" onclick="event.stopPropagation()">{{ s.problem_id }}</a>{% else %}?{% endif %}</td>
         <td>
             {% if s.status == 'pending' %}
             <span class="badge badge-pending">评测中</span>
@@ -38,7 +38,6 @@
             {% endif %}
         </td>
         <td>{{ s.score|default:'0' }} / {{ s.counts|default:'100' }}</td>
-        <td><a href="{% url 'submission_result' s.submission_id %}" class="btn btn-sm">查看</a></td>
     </tr>
     {% endfor %}
     </tbody>

@@ -173,7 +173,11 @@ async def list_submissions(
 
     items = []
     for s in paged:
-        brief: dict = {"submission_id": s["submission_id"], "status": s["status"]}
+        brief: dict = {
+            "submission_id": s["submission_id"],
+            "problem_id": s.get("problem_id", ""),
+            "status": s["status"],
+        }
         if s.get("status") not in ("error", "pending"):
             brief["score"] = s.get("score", 0)
             brief["counts"] = s.get("counts", 0)

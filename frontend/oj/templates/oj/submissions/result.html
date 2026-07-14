@@ -32,7 +32,7 @@
         <tr class="tc-{{ tc.result|lower }}">
             <td>{{ tc.id }}</td>
             <td><strong class="badge badge-{{ tc.result|lower }}">{{ tc.result }}</strong></td>
-            <td>{% if tc.time == 0 %}—{% elif tc.time < 1.0 %}{{ tc.time|floatformat:3 }}s{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
+            <td>{% if tc.time == 0 %}—{% elif tc.time < 1.0 %}{% widthratio tc.time 1 1000 %}ms{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
             <td>{{ tc.memory }} MB</td>
         </tr>
         {% endfor %}
@@ -42,7 +42,7 @@
 
     <div class="result-actions">
         <a href="{% url 'submission_log' submission_id %}" class="btn">查看日志</a>
-        <a href="/" class="btn">← 返回题目列表</a>
+        {% if problem_id %}<a href="{% url 'problem_detail' problem_id %}" class="btn">← 返回原题</a>{% endif %}
         {% if user.role == 'admin' %}
         <form method="post" action="{% url 'submission_rejudge' submission_id %}" style="display:inline">
             {% csrf_token %}

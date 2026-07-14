@@ -115,9 +115,11 @@ def submission_result(request, submission_id: str):
     """Show submission result with polling."""
     user = request.session.get('user', {})
     log_data = api.get_submission_log(request, submission_id)
+    sub = api.get_submission(request, submission_id) or {}
     return render(request, 'oj/submissions/result.html', {
         'submission_id': submission_id,
         'log_data': log_data,
+        'problem_id': sub.get('problem_id', ''),
         'user': user,
     })
 
@@ -127,9 +129,11 @@ def submission_log(request, submission_id: str):
     """Detailed judge log."""
     user = request.session.get('user', {})
     log_data = api.get_submission_log(request, submission_id)
+    sub = api.get_submission(request, submission_id) or {}
     return render(request, 'oj/submissions/log.html', {
         'submission_id': submission_id,
         'log_data': log_data,
+        'problem_id': sub.get('problem_id', ''),
         'user': user,
     })
 
