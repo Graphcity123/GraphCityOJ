@@ -29,8 +29,7 @@ async def _sync_problems_from_disk():
         if not pid.isdigit():
             _log.info(f"  Skip non-numeric: {pid}")
             continue
-        if await get_problem(pid) is not None:
-            continue
+        existing = await get_problem(pid)
         tc_count = len([f for f in folder.iterdir()
                        if f.name.endswith(".in")])
         cfg_file = folder / "config.json"
@@ -57,16 +56,23 @@ async def _sync_problems_from_disk():
                     "output": out1.read_text().strip(),
                 }]
         try:
-            await save_problem(pid, {
+            desc = existing.description if existing else ""
+            inp_d = existing.input_description if existing else ""
+            out_d = existing.output_description if existing else ""
+            cons = existing.constraints if existing else ""
+            smp = (existing.samples or samples) if existing else samples
+            data = {
                 "id": pid, "title": title,
-                "description": "", "input_description": "",
-                "output_description": "", "constraints": "",
-                "samples": samples,
-                "testcases": [], "testcase_count": tc_count,
+                "description": desc, "input_description": inp_d,
+                "output_description": out_d, "constraints": cons,
+                "samples": smp,
+                "testcases": [],
+                "testcase_count": tc_count,
                 "time_limit": time_limit, "memory_limit": memory_limit,
                 "difficulty": difficulty,
-            })
-            _log.info(f"  Registered: {pid} ({title}, {tc_count} tc)")
+            }
+            await save_problem(pid, data)
+            _log.info(f"  Synced: {pid} ({title}, {tc_count} tc)")
         except Exception as e:
             _log.error(f"  Failed {pid}: {e}")
 
