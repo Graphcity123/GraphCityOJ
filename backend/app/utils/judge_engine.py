@@ -166,6 +166,13 @@ async def _run_testcase(
             except (psutil.NoSuchProcess, Exception):
                 pass
 
+        # Take an initial memory reading before the process runs
+        try:
+            p = psutil.Process(proc.pid)
+            peak_rss = p.memory_info().rss
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+
         mem_task = asyncio.create_task(_poll_memory())
         start_time = time.perf_counter()
 

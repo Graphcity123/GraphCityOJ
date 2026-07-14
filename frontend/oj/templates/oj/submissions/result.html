@@ -42,6 +42,7 @@
 
     <div class="result-actions">
         <a href="{% url 'submission_log' submission_id %}" class="btn">查看日志</a>
+        <a href="/" class="btn">← 返回题目列表</a>
         {% if user.role == 'admin' %}
         <form method="post" action="{% url 'submission_rejudge' submission_id %}" style="display:inline">
             {% csrf_token %}

@@ -107,7 +107,7 @@ def submission_create(request, folder_id: str):
 
     sub_id = result.get('submission_id', '')
     messages.success(request, f'已提交！编号：{sub_id}')
-    return redirect('submission_result', submission_id=sub_id)
+    return redirect('submission_log', submission_id=sub_id)
 
 
 @login_required
