@@ -1,0 +1,25 @@
+{% extends 'oj/base.html' %}
+{% block title %}上传题目 — GCOJ{% endblock %}
+
+{% block content %}
+<h2>上传题目</h2>
+
+<div class="auth-container" style="max-width:560px">
+    <form method="post" enctype="multipart/form-data" class="auth-form">
+        {% csrf_token %}
+        <label>题面文件（problem.md）</label>
+        <input type="file" name="problem_md" accept=".md" required>
+        <p style="font-size:.8rem;color:var(--text-secondary)">
+           Markdown 格式，支持 YAML front-matter（title, time_limit, memory_limit, tags, difficulty）
+        </p>
+
+        <label>测试数据（testcases.zip）</label>
+        <input type="file" name="testcases_zip" accept=".zip" required>
+        <p style="font-size:.8rem;color:var(--text-secondary)">
+           ZIP 压缩包，内含 1.in / 1.out / 2.in / 2.out ...
+        </p>
+
+        <button type="submit" class="btn btn-primary">上传创建</button>
+    </form>
+</div>
+{% endblock %}

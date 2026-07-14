@@ -168,6 +168,52 @@ def submission_rejudge(request, submission_id: str):
     return redirect('submission_result', submission_id=submission_id)
 
 
+# ── Problem Upload ─────────────────────────────────────────────
+
+@login_required
+def problem_upload(request):
+    """Upload a new problem via .md + .zip files (admin only)."""
+    user = request.session.get('user', {})
+    if user.get('role') != 'admin':
+        messages.error(request, '仅限管理员上传题目。')
+        return redirect('problem_list')
+
+    if request.method == 'POST':
+        md_file = request.FILES.get('problem_md')
+        zip_file = request.FILES.get('testcases_zip')
+
+        if not md_file or not zip_file:
+            messages.error(request, '请上传 problem.md 和 testcases.zip 两个文件。')
+        elif not md_file.name.endswith('.md'):
+            messages.error(request, '题面文件必须是 .md 格式。')
+        elif not zip_file.name.endswith('.zip'):
+            messages.error(request, '测试数据必须是 .zip 格式。')
+        else:
+            result = api.upload_problem(request, md_file, zip_file)
+            if result:
+                pid = result.get('id', '')
+                messages.success(request, f'题目创建成功！ID: {pid}')
+                return redirect('problem_detail', folder_id=pid)
+
+    return render(request, 'oj/problems/upload.html',
+                  {'user': user})
+
+
+@login_required
+def problem_delete(request, folder_id: str):
+    """Delete a problem (admin only)."""
+    user = request.session.get('user', {})
+    if user.get('role') != 'admin':
+        messages.error(request, '仅限管理员删除题目。')
+        return redirect('problem_list')
+
+    if request.method == 'POST':
+        api.delete_problem(request, folder_id)
+        messages.success(request, f'题目 {folder_id} 已删除。')
+        return redirect('problem_list')
+    return redirect('problem_detail', folder_id=folder_id)
+
+
 # ── Admin ─────────────────────────────────────────────────────
 
 

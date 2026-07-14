@@ -43,6 +43,14 @@
 
     <div class="submit-panel">
         <h3>提交代码</h3>
+        {% if user.role == 'admin' %}
+        <form method="post" action="{% url 'problem_delete' folder_id %}"
+              onsubmit="return confirm('确认删除题目 {{ folder_id }}？此操作不可撤销。')"
+              style="margin-bottom:12px">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger" style="width:100%">删除此题目</button>
+        </form>
+        {% endif %}
         <form method="post" action="{% url 'submit' folder_id %}">
             {% csrf_token %}
             <label>语言</label>

@@ -199,6 +199,24 @@ def get_users(request: HttpRequest,
                    f'/api/users/?page={page}&page_size={page_size}') or {}
 
 
+def upload_problem(request: HttpRequest,
+                   md_file, zip_file) -> dict[str, Any] | None:
+    """Upload a problem via .md + .zip files."""
+    resp = _api_call(request, 'POST', '/api/problems/upload',
+                     files={'problem_md': (md_file.name, md_file.read(),
+                                           'text/markdown'),
+                            'testcases_zip': (zip_file.name, zip_file.read(),
+                                              'application/zip')})
+    return _unwrap(request, resp)
+
+
+def delete_problem(request: HttpRequest,
+                   problem_id: str) -> dict[str, Any] | None:
+    """Delete a problem (admin only)."""
+    resp = _api_call(request, 'DELETE', f'/api/problems/{problem_id}')
+    return _unwrap(request, resp)
+
+
 def get_user(request: HttpRequest, user_id: str) -> dict[str, Any] | None:
     """Get user info."""
     return api_get(request, f'/api/users/{user_id}')

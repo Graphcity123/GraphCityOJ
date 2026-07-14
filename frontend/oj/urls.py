@@ -14,6 +14,9 @@ urlpatterns = [
          name='problem_detail'),
     path('problem/<str:folder_id>/submit/', views.submission_create,
          name='submit'),
+    path('problem/<str:folder_id>/delete/', views.problem_delete,
+         name='problem_delete'),
+    path('problem/upload/', views.problem_upload, name='problem_upload'),
 
     # Submissions
     path('submissions/', views.submission_list, name='submission_list'),
