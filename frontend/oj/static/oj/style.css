@@ -112,7 +112,8 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 .btn:hover { background: var(--bg); text-decoration: none; }
 .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
 .btn-primary:hover { background: var(--primary-dark); }
-.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); padding: 12px 20px; font-size: .95rem; font-weight: 700; }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { background: #dc2626; border-color: #dc2626; }
 .btn-sm { padding: 4px 12px; font-size: .8rem; }
 
 /* Problem grid */
