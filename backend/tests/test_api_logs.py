@@ -60,8 +60,8 @@ def test_get_submission_log(client):
     
     # Assert specific expected values based on test case
     # Problem has 2 test cases, each worth 10 points, correct solution should get full score
-    assert data["data"]["score"] == 20  # 2 test cases × 10 points each
-    assert data["data"]["counts"] == 20  # Total possible points
+    assert data["data"]["score"] == 100  # total 100 points
+    assert data["data"]["counts"] == 100
 
     # Test as admin
     setup_admin_session(client)

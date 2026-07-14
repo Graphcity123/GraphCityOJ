@@ -71,9 +71,16 @@ class TestListSubmissions:
         resp = client.get("/api/submissions/?user_id=admin")
         assert resp.status_code == 401
 
-    def test_list_submissions_requires_filter(self, admin_client):
-        """不带 user_id 或 problem_id 时返回 400"""
-        resp = admin_client.get("/api/submissions/")
+    def test_list_submissions_requires_filter(self, client):
+        """普通用户不带 user_id 或 problem_id 时返回 400"""
+        # Login as regular user
+        client.post("/api/users/", json={
+            "username": "normal_user", "password": "test123456",
+        })
+        client.post("/api/auth/login", json={
+            "username": "normal_user", "password": "test123456",
+        })
+        resp = client.get("/api/submissions/")
         assert resp.status_code == 400
 
     def test_list_submissions_empty(self, admin_client):

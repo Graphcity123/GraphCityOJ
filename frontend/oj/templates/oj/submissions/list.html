@@ -4,13 +4,11 @@
 {% block content %}
 <h2>提交记录</h2>
 
-{% if is_admin %}
 <form method="get" class="filter-form">
     <input type="text" name="user_id" placeholder="用户ID" value="{{ request.GET.user_id }}">
     <input type="text" name="problem_id" placeholder="题目ID" value="{{ request.GET.problem_id }}">
     <button type="submit" class="btn">筛选</button>
 </form>
-{% endif %}
 
 {% if not submissions %}
 <p class="empty">暂无提交记录。</p>
@@ -23,9 +21,23 @@
     {% for s in submissions %}
     <tr>
         <td><code>{{ s.submission_id }}</code></td>
-        <td>{{ s.problem_id|default:'?' }}</td>
-        <td><span class="badge badge-{{ s.status|lower }}">{{ s.status }}</span></td>
-        <td>{{ s.score|default:'?' }} / {{ s.counts|default:'?' }}</td>
+        <td><a href="{% url 'problem_detail' s.problem_id %}">{{ s.problem_id }}</a></td>
+        <td>
+            {% if s.status == 'pending' %}
+            <span class="badge badge-pending">评测中</span>
+            {% elif s.status == 'success' %}
+                {% if s.score == s.counts and s.counts > 0 %}
+                <span class="badge badge-ac">Accepted</span>
+                {% elif s.score > 0 %}
+                <span class="badge badge-wa">Wrong Answer</span>
+                {% else %}
+                <span class="badge badge-ce">Failed</span>
+                {% endif %}
+            {% else %}
+            <span class="badge badge-pending">{{ s.status }}</span>
+            {% endif %}
+        </td>
+        <td>{{ s.score|default:'0' }} / {{ s.counts|default:'100' }}</td>
         <td><a href="{% url 'submission_result' s.submission_id %}" class="btn btn-sm">查看</a></td>
     </tr>
     {% endfor %}

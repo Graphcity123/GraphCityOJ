@@ -7,13 +7,11 @@ import signal
 import time
 from pathlib import Path
 
-import psutil
-
 from app.storage import get_languages, get_problem
 from app.schemas import EvalStatus
 
 
-_PER_TESTCASE_SCORE = 10
+_TOTAL_SCORE = 100
 
 
 async def run_judge(
@@ -61,8 +59,8 @@ async def run_judge(
     run_cmd = lang_info["run_cmd"]
     extension = lang_info.get("file_ext", ".py")
 
-    per_tc_score = _PER_TESTCASE_SCORE
-    total_counts = len(testcases) * _PER_TESTCASE_SCORE
+    per_tc_score = _TOTAL_SCORE / len(testcases) if testcases else 0
+    total_counts = _TOTAL_SCORE
 
     # Write source file
     work_dir.mkdir(parents=True, exist_ok=True)
@@ -86,7 +84,7 @@ async def run_judge(
                 "results": [{"id": tc_idx + 1, "result": "CE", "time": 0.0, "memory": 0}
                             for tc_idx in range(len(testcases))],
                 "detail": stderr.decode("utf-8", errors="replace")[:500],
-                "counts": len(testcases) * _PER_TESTCASE_SCORE,
+                "counts": _TOTAL_SCORE,
             }
 
     # Run each testcase
@@ -129,7 +127,7 @@ async def _run_testcase(
     memory_limit_mb: int,
     tc_id: int,
 ) -> dict:
-    """Run a single test case with time and memory measurement."""
+    """Run a single test case. Time via perf_counter, memory via getrusage."""
     cmd = run_cmd.format(src=src_path, exe=exe_path)
 
     try:
@@ -142,38 +140,6 @@ async def _run_testcase(
             preexec_fn=_set_limits(memory_limit_mb),
         )
 
-        # Memory monitor: poll RSS every 50ms
-        peak_rss: int = 0
-        mem_exceeded: bool = False
-        mem_stop: bool = False
-
-        async def _poll_memory():
-            nonlocal peak_rss, mem_exceeded, mem_stop
-            try:
-                p = psutil.Process(proc.pid)
-                while not mem_stop:
-                    try:
-                        rss = p.memory_info().rss
-                        if rss > peak_rss:
-                            peak_rss = rss
-                        if rss > memory_limit_mb * 1024 * 1024:
-                            mem_exceeded = True
-                            proc.kill()
-                            return
-                    except (psutil.NoSuchProcess, psutil.AccessDenied):
-                        return
-                    await asyncio.sleep(0.05)
-            except (psutil.NoSuchProcess, Exception):
-                pass
-
-        # Take an initial memory reading before the process runs
-        try:
-            p = psutil.Process(proc.pid)
-            peak_rss = p.memory_info().rss
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            pass
-
-        mem_task = asyncio.create_task(_poll_memory())
         start_time = time.perf_counter()
 
         try:
@@ -188,30 +154,36 @@ async def _run_testcase(
                 await proc.wait()
             except ProcessLookupError:
                 pass
-            mem_stop = True
-            await mem_task
-            mem_mb = round(peak_rss / (1024 * 1024), 2)
-            return {"id": tc_id, "result": "TLE", "time": elapsed, "memory": int(mem_mb)}
+            return {"id": tc_id, "result": "TLE",
+                    "time": elapsed, "memory": 0}
 
         elapsed = round(time.perf_counter() - start_time, 2)
-        mem_stop = True
-        await mem_task
-        mem_mb = round(peak_rss / (1024 * 1024), 2)
 
-        # Check memory exceeded first
-        if mem_exceeded:
-            return {"id": tc_id, "result": "MLE", "time": elapsed, "memory": int(mem_mb)}
+        # Memory from OS: max RSS of child processes (KB on Linux)
+        try:
+            usage = resource.getrusage(resource.RUSAGE_CHILDREN)
+            mem_mb = usage.ru_maxrss // 1024
+        except Exception:
+            mem_mb = 0
+
+        # MLE check against OS-reported max
+        if mem_mb > memory_limit_mb:
+            return {"id": tc_id, "result": "MLE",
+                    "time": elapsed, "memory": int(mem_mb)}
 
         output = stdout.decode("utf-8", errors="replace").strip()
         expected = expected_output.strip()
 
         if _compare_output(output, expected):
-            return {"id": tc_id, "result": "AC", "time": elapsed, "memory": int(mem_mb)}
+            return {"id": tc_id, "result": "AC",
+                    "time": elapsed, "memory": int(mem_mb)}
         else:
-            return {"id": tc_id, "result": "WA", "time": elapsed, "memory": int(mem_mb)}
+            return {"id": tc_id, "result": "WA",
+                    "time": elapsed, "memory": int(mem_mb)}
 
     except asyncio.TimeoutError:
-        return {"id": tc_id, "result": "TLE", "time": round(time_limit, 2), "memory": 0}
+        return {"id": tc_id, "result": "TLE",
+                "time": round(time_limit, 2), "memory": 0}
     except Exception:
         return {"id": tc_id, "result": "RE", "time": 0.0, "memory": 0}
 

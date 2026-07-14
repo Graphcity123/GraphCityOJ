@@ -15,7 +15,7 @@
         <tr class="tc-{{ tc.result|lower }}">
             <td>{{ tc.id }}</td>
             <td><strong class="badge badge-{{ tc.result|lower }}">{{ tc.result }}</strong></td>
-            <td>{% if tc.time < 1.0 %}{% widthratio tc.time 1 1000 %}ms{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
+            <td>{% if tc.time == 0 %}—{% elif tc.time < 1.0 %}{{ tc.time|floatformat:3 }}s{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
             <td>{{ tc.memory }} MB</td>
         </tr>
         {% endfor %}

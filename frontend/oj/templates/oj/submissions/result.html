@@ -5,20 +5,20 @@
 <h2>评测结果</h2>
 <p class="submission-id">提交编号：<strong>{{ submission_id }}</strong></p>
 
-{% if not log_data %}
+{% if not log_data or not log_data.details %}
 <div class="polling-msg">
-    <p>⏳ 等待评测完成...</p>
+    <p>⏳ 评测中...</p>
     <p class="hint">页面将自动刷新。</p>
 </div>
 <script>setTimeout(function(){location.reload();},1500);</script>
 {% else %}
     {% with score=log_data.score|default:0 counts=log_data.counts|default:0 %}
     {% if score == counts and counts > 0 %}
-    <div class="result-banner result-ac">✅ 全部通过 — {{ score }} / {{ counts }}</div>
+    <div class="result-banner result-ac">✅ Accepted — {{ score }} / {{ counts }}</div>
     {% elif score > 0 %}
-    <div class="result-banner result-partial">⚠️ 部分通过 — {{ score }} / {{ counts }}</div>
+    <div class="result-banner result-partial">⚠️ Wrong Answer — {{ score }} / {{ counts }}</div>
     {% else %}
-    <div class="result-banner result-fail">❌ 未通过 — {{ score }} / {{ counts }}</div>
+    <div class="result-banner result-fail">❌ Failed — {{ score }} / {{ counts }}</div>
     {% endif %}
     {% endwith %}
 
@@ -32,7 +32,7 @@
         <tr class="tc-{{ tc.result|lower }}">
             <td>{{ tc.id }}</td>
             <td><strong class="badge badge-{{ tc.result|lower }}">{{ tc.result }}</strong></td>
-            <td>{% if tc.time < 1.0 %}{{ tc.time|floatformat:0 }}ms{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
+            <td>{% if tc.time == 0 %}—{% elif tc.time < 1.0 %}{{ tc.time|floatformat:3 }}s{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
             <td>{{ tc.memory }} MB</td>
         </tr>
         {% endfor %}

@@ -140,22 +140,19 @@ async def list_submissions(
 ):
     user = require_login(req)
 
-    if user_id is None and problem_id is None:
+    # Non-admin must provide at least one filter; admin can see all
+    if user.get("role") != "admin" and user_id is None and problem_id is None:
         raise SubmissionConditionError()
 
-    # Pagination: page set but page_size empty = error
     if page is not None and page_size is None:
         raise HTTPException(status_code=400, detail="page_size is required when page is set")
 
     all_subs = list((await get_submissions()).values())
 
-    # Apply filters
     if user_id:
         all_subs = [s for s in all_subs if s["user_id"] == user_id]
-    else:
-        # Without user_id: admin sees all, normal user sees only their own
-        if user.get("role") != "admin":
-            all_subs = [s for s in all_subs if s["user_id"] == user["user_id"]]
+    elif user.get("role") != "admin":
+        all_subs = [s for s in all_subs if s["user_id"] == user["user_id"]]
 
     if problem_id:
         all_subs = [s for s in all_subs if s["problem_id"] == problem_id]

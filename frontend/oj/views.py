@@ -136,19 +136,18 @@ def submission_log(request, submission_id: str):
 
 @login_required
 def submission_list(request):
-    """List submissions with filters."""
+    """List submissions with optional filters."""
     user = request.session.get('user', {})
     is_admin = user.get('role') == 'admin'
 
     filters = {'page': request.GET.get('page', '1'),
                'page_size': request.GET.get('page_size', '50')}
-    if not is_admin:
+    if request.GET.get('user_id'):
+        filters['user_id'] = request.GET['user_id']
+    if request.GET.get('problem_id'):
+        filters['problem_id'] = request.GET['problem_id']
+    if not is_admin and not filters.get('user_id') and not filters.get('problem_id'):
         filters['user_id'] = user.get('user_id', '')
-    else:
-        if request.GET.get('user_id'):
-            filters['user_id'] = request.GET['user_id']
-        if request.GET.get('problem_id'):
-            filters['problem_id'] = request.GET['problem_id']
 
     data = api.list_submissions(request, **filters)
     return render(request, 'oj/submissions/list.html', {

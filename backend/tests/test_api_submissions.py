@@ -102,10 +102,9 @@ def test_get_submission_result(client):
     assert "score" in data["data"]
     assert "counts" in data["data"]
 
-    # Assert specific expected values based on test case
-    # Problem has 1 test case, each worth 10 points, correct solution should get full score
-    assert data["data"]["score"] == 10  # 1 test case × 10 points
-    assert data["data"]["counts"] == 10  # Total possible points
+    # 1 test case, total 100 points
+    assert data["data"]["score"] == 100
+    assert data["data"]["counts"] == 100
 
 
 def test_get_submissions_list(client):
