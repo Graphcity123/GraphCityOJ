@@ -199,7 +199,8 @@ def _extract_and_validate_testcases(zip_bytes: bytes,
 
         files = os.listdir(temp_dir)
         in_files = [f for f in files if f.endswith(".in")]
-        out_files = [f for f in files if f.endswith(".out")]
+        out_files = [f for f in files
+                     if f.endswith(".out") or f.endswith(".ans")]
 
         if not in_files:
             raise HTTPException(status_code=400,
