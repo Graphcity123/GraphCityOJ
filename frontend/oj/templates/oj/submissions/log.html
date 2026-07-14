@@ -42,6 +42,5 @@
 {{ code|highlight_code:language }}
 {% endif %}
 
-<a href="{% url 'submission_result' submission_id %}" class="btn">查看结果</a>
 {% if problem_id %}<a href="{% url 'problem_detail' problem_id %}" class="btn">← 返回原题</a>{% endif %}
 {% endblock %}

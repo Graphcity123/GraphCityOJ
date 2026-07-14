@@ -203,6 +203,9 @@ async def get_submission_detail(req: Request, submission_id: str):
     return ApiResponse(code=200, msg="success", data={
         "score": sub.get("score", 0),
         "counts": sub.get("counts", 0),
+        "code": sub.get("code", ""),
+        "language": sub.get("language", ""),
+        "problem_id": sub.get("problem_id", ""),
     })
 
 
