@@ -1,0 +1,9 @@
+{
+  "id": "example",
+  "title": "A+B Problem",
+  "time_limit": 1.0,
+  "memory_limit": 256,
+  "difficulty": "beginner",
+  "author": "",
+  "testcase_count": 1
+}
