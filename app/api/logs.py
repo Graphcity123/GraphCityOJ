@@ -3,7 +3,7 @@ from __future__ import annotations
 import json as _json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 
 from app.schemas import ApiResponse, LogVisibilityUpdate
 from app.storage import (
@@ -52,6 +52,14 @@ async def query_submission_log(req: Request, submission_id: str):
     if not is_admin and not public_cases:
         details = []
 
+    add_audit({
+        "user_id": user["user_id"],
+        "problem_id": sub["problem_id"],
+        "action": "view_log",
+        "time": datetime.now(timezone.utc).isoformat().split("T")[0],
+        "status": "200" if (is_admin or public_cases) else "403",
+    })
+
     return ApiResponse(code=200, msg="success", data={
         "details": details,
         "score": sub.get("score", 0),
@@ -91,11 +99,11 @@ async def query_access_logs(
     req: Request,
     user_id: str | None = Query(default=None),
     problem_id: str | None = Query(default=None),
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
+    page: int | None = Query(default=None),
+    page_size: int | None = Query(default=None),
 ):
     require_admin(req)
-    all_logs = list(get_audit_logs())
+    all_logs = [lg for lg in get_audit_logs() if lg.get("action") == "view_log"]
 
     if user_id:
         all_logs = [lg for lg in all_logs if lg.get("user_id") == user_id]
@@ -103,7 +111,19 @@ async def query_access_logs(
         all_logs = [lg for lg in all_logs if lg.get("problem_id") == problem_id]
 
     total = len(all_logs)
-    start = (page - 1) * page_size
-    items = all_logs[start:start + page_size]
+
+    # Pagination: same rules as submissions list
+    if page is None and page_size is None:
+        paged = all_logs
+    elif page is not None and page_size is None:
+        raise HTTPException(status_code=400, detail="page_size is required when page is set")
+    else:
+        if page is None:
+            page = 1
+        page_size = page_size or 20
+        start = (page - 1) * page_size
+        paged = all_logs[start:start + page_size]
+
+    items = [{k: lg[k] for k in ("user_id", "problem_id", "action", "time", "status") if k in lg} for lg in paged]
 
     return ApiResponse(code=200, msg="success", data=items)

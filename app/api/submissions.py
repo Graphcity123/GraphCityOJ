@@ -65,7 +65,10 @@ async def _run_judge_and_update(
         user_record["submit_count"] += 1
         if result["score"] == 100.0:
             user_record.setdefault("resolve_count", 0)
-            user_record["resolve_count"] += 1
+            user_record.setdefault("_resolved_problems", [])
+            if problem_id not in user_record["_resolved_problems"]:
+                user_record["_resolved_problems"].append(problem_id)
+                user_record["resolve_count"] += 1
 
     log_id = next_id("log")
     save_log(log_id, {

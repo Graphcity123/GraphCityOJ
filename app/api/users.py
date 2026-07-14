@@ -78,15 +78,24 @@ async def register(body: UserRegister):
 @router.get("/")
 async def list_users(
     req: Request,
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
+    page: int | None = Query(default=None),
+    page_size: int | None = Query(default=None),
 ):
     require_admin(req)
     all_users = list(get_users().values())
     total = len(all_users)
-    start = (page - 1) * page_size
+
+    # Pagination: both empty = return all; page_size only = first page
+    if page is None and page_size is None:
+        paged = all_users
+    else:
+        if page is None:
+            page = 1
+        page_size = page_size or 20
+        start = (page - 1) * page_size
+        paged = all_users[start:start + page_size]
     items = []
-    for u in all_users[start:start + page_size]:
+    for u in paged:
         items.append({
             "user_id": u["user_id"],
             "username": u["username"],

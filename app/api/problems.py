@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Request
@@ -42,7 +41,23 @@ async def get_problem_detail(req: Request, problem_id: str):
     p = get_problem(problem_id)
     if p is None:
         raise ProblemNotFound(problem_id)
-    return ApiResponse(code=200, msg="success", data=copy.deepcopy(p))
+    return ApiResponse(code=200, msg="success", data={
+        "id": p["id"],
+        "title": p.get("title", ""),
+        "description": p.get("description", ""),
+        "input_description": p.get("input_description", ""),
+        "output_description": p.get("output_description", ""),
+        "samples": p.get("samples", []),
+        "constraints": p.get("constraints", ""),
+        "testcases": p.get("testcases", []),
+        "hint": p.get("hint", ""),
+        "source": p.get("source", ""),
+        "tags": p.get("tags", []),
+        "time_limit": p.get("time_limit", 3.0),
+        "memory_limit": p.get("memory_limit", 128),
+        "author": p.get("author", ""),
+        "difficulty": p.get("difficulty", ""),
+    })
 
 
 @router.delete("/{problem_id}")

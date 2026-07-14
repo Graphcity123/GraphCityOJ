@@ -52,7 +52,7 @@ def _register_default_languages():
         {
             "id": "python",
             "name": "Python 3",
-            "extension": ".py",
+            "file_ext": ".py",
             "compile_cmd": "",
             "run_cmd": "python3 {src}",
             "time_limit": 2.0,
@@ -61,7 +61,7 @@ def _register_default_languages():
         {
             "id": "cpp",
             "name": "C++ (GCC 9+)",
-            "extension": ".cpp",
+            "file_ext": ".cpp",
             "compile_cmd": "g++ {src} -o {exe} -std=c++14 -O2",
             "run_cmd": "{exe}",
             "time_limit": 2.0,
