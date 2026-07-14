@@ -219,6 +219,7 @@ async def get_submission_detail(req: Request, submission_id: str):
         "code": sub.get("code", ""),
         "language": sub.get("language", ""),
         "problem_id": sub.get("problem_id", ""),
+        "user_id": sub.get("user_id", ""),
     })
 
 
