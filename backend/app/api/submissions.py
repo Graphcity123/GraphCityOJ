@@ -98,7 +98,8 @@ async def submit_judge(
     if lang_info is None:
         raise LanguageNotFound(body.language)
 
-    submission_id = next_id("sub")
+    sub_counter = next_id("sub")
+    submission_id = sub_counter.split("_")[-1]
     now = datetime.now(timezone.utc).isoformat()
 
     sub_data = {
@@ -173,9 +174,11 @@ async def list_submissions(
 
     items = []
     for s in paged:
+        prob = await get_problem(s.get("problem_id", ""))
         brief: dict = {
             "submission_id": s["submission_id"],
             "problem_id": s.get("problem_id", ""),
+            "problem_title": prob.get("title", "") if prob else "",
             "status": s["status"],
         }
         if s.get("status") not in ("error", "pending"):
