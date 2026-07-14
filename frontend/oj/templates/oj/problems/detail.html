@@ -5,13 +5,19 @@
 {% block content %}
 <div class="problem-detail-layout">
     <div class="problem-body">
-        <h2><strong>{{ problem.id }}</strong> {{ problem.title }}</h2>
-        <div class="problem-meta">
-            <span>⏱ {{ problem.time_limit }}s</span>
-            <span>📦 {{ problem.memory_limit }} MB</span>
-            {% if problem.difficulty %}
-            <span class="difficulty difficulty-{{ problem.difficulty }}">{{ problem.difficulty }}</span>
-            {% endif %}
+        <div class="problem-header">
+            <span class="prob-id-lg">{{ problem.id }}</span>
+            <span class="prob-divider-lg"></span>
+            <div class="prob-title-group">
+                <span class="prob-title-lg">{{ problem.title }}</span>
+                <div class="problem-meta">
+                    <span>⏱ {{ problem.time_limit }}s</span>
+                    <span>📦 {{ problem.memory_limit }} MB</span>
+                    {% if problem.difficulty %}
+                    <span class="difficulty difficulty-{{ problem.difficulty }}">{{ problem.difficulty }}</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
         {% if problem.description %}
         <div class="prob-section markdown-body">{{ problem.description|markdown }}</div>
