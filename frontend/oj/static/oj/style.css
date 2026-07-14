@@ -135,23 +135,39 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 .prob-title { font-weight: 600; flex: 1; color: var(--text); }
 .tag { font-family: inherit; background: var(--bg); color: var(--text-secondary); padding: 2px 8px; font-size: .75rem; border: 1px solid var(--border); }
 
-/* Problem detail */
-.problem-detail-layout { display: grid; grid-template-columns: 1fr 360px; gap: 24px; }
-.problem-body { min-width: 0; }
-.prob-section { margin: 12px 0; }
-.prob-section h3 { font-size: 1rem; color: var(--primary); margin-bottom: 4px; border-left: 3px solid var(--accent); padding-left: 12px; }
-.problem-meta { display: flex; gap: 12px; font-size: .85rem; color: var(--text-secondary); margin-bottom: 16px; }
-.sample { margin: 8px 0; }
-.sample-in, .sample-out { margin: 4px 0; }
-.sample pre { background: var(--code-bg); color: var(--code-text); padding: 8px 12px; font-size: .85rem; overflow-x: auto; margin-top: 4px; }
-.hint { background: #fffbeb; border-left: 4px solid var(--warning); padding: 12px; }
-.submit-panel {
-    background: var(--card-bg); border: 1px solid var(--border);
-    padding: 20px; box-shadow: var(--shadow);
-    position: sticky; top: 72px; height: fit-content;
-}
-.submit-panel textarea { resize: vertical; min-height: 200px; }
-.submit-btn { width: 100%; margin-top: 12px; }
+/* Problem detail — graphcity_blog article-page style */
+.detail-header { margin-bottom: 32px; }
+.detail-header-body { border-left: 18px solid var(--primary); padding-left: 29px; }
+.detail-header h1 { font-size: 56px; color: var(--primary); font-weight: 900; line-height: 1; margin: 0 0 12px; text-wrap: balance; }
+.detail-meta { display: flex; gap: 16px; font-size: .9rem; color: var(--text-secondary); margin-top: 8px; }
+
+.detail-layout { display: flex; gap: 32px; align-items: flex-start; }
+.detail-layout article { flex: 1; min-width: 0; background: var(--card-bg); padding: 32px 40px; }
+.detail-sidebar { position: sticky; top: 72px; width: 320px; flex-shrink: 0; }
+
+.submit-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; }
+.submit-card h3 { font-size: 16px; color: var(--text); margin-bottom: 14px; border-left: 3px solid var(--primary); padding-left: 10px; }
+.submit-card label { display: block; font-weight: 600; font-size: .85rem; margin: 10px 0 4px; color: var(--text); }
+.submit-card select, .submit-card input[type=file], .submit-card textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); font-size: .9rem; background: var(--bg); color: var(--text); font-family: inherit; }
+.submit-card textarea { resize: vertical; min-height: 160px; font-family: 'JetBrains Mono', monospace; }
+.submit-btn { width: 100%; margin-top: 14px; }
+
+.article-body { font-size: 16px; }
+.article-body h2 { margin-top: 32px; margin-bottom: 12px; border: none !important; font-size: 24px; color: #444; font-weight: 700; padding-left: 0 !important; }
+.article-body h3 { margin-top: 24px; font-size: 20px; }
+.article-body p { margin: 12px 0; }
+.article-body ul, .article-body ol { margin: 8px 0 8px 24px; }
+.article-body li { margin: 4px 0; }
+.article-body pre { margin: 12px 0; }
+.article-body code { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+.article-body :not(pre) > code { background: #f0f0f0; padding: 2px 6px; color: #c0392b; }
+.article-body .highlight { border-radius: 0; }
+.article-body .highlight pre { padding: 20px 24px; }
+.article-body table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.article-body th { background: var(--primary); color: #fff; padding: 10px 14px; text-align: left; }
+.article-body td { padding: 8px 14px; border-bottom: 1px solid #e0e0e0; }
+.article-body blockquote { border-left: 4px solid var(--primary); padding: 8px 16px; margin: 16px 0; background: #f5f7fa; color: #555; }
+.article-body img { max-width: 100%; }
 
 /* Submissions */
 .submission-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
@@ -262,8 +278,11 @@ pre code { background: none; padding: 0; border: none; }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .problem-detail-layout { grid-template-columns: 1fr; }
-    .submit-panel { position: static; }
+    .detail-header h1 { font-size: 36px; }
+    .detail-header-body { border-left-width: 8px; padding-left: 16px; }
+    .detail-layout { flex-direction: column; }
+    .detail-sidebar { position: static; width: 100%; }
+    .detail-layout article { padding: 20px; }
     .admin-grid { grid-template-columns: 1fr; }
     .navbar { padding: 0 12px; }
     .nav-left, .nav-right { gap: 8px; }

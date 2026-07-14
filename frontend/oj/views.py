@@ -90,8 +90,12 @@ def submission_create(request, folder_id: str):
     if request.method != 'POST':
         return redirect('problem_detail', folder_id=folder_id)
 
-    code = request.POST.get('code', '')
-    language = request.POST.get('language', 'python')
+    language = request.POST.get('language', 'cpp')
+    uploaded = request.FILES.get('code_file')
+    if uploaded:
+        code = uploaded.read().decode('utf-8', errors='replace')
+    else:
+        code = request.POST.get('code', '')
 
     if not code.strip():
         messages.error(request, '代码不能为空。')
@@ -102,7 +106,7 @@ def submission_create(request, folder_id: str):
         return redirect('problem_detail', folder_id=folder_id)
 
     sub_id = result.get('submission_id', '')
-    messages.success(request, f'已提交！编号： {sub_id}')
+    messages.success(request, f'已提交！编号：{sub_id}')
     return redirect('submission_result', submission_id=sub_id)
 
 

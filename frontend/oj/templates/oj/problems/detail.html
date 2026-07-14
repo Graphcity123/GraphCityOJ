@@ -3,73 +3,50 @@
 {% block title %}{{ problem.title }} — GCOJ{% endblock %}
 
 {% block content %}
-<div class="problem-detail-layout">
-    <div class="problem-body">
-        <div class="problem-header">
-            <span class="prob-id-lg">{{ problem.id }}</span>
-            <span class="prob-divider-lg"></span>
-            <div class="prob-title-group">
-                <span class="prob-title-lg">{{ problem.title }}</span>
-                <div class="problem-meta">
-                    <span>⏱ {{ problem.time_limit }}s</span>
-                    <span>📦 {{ problem.memory_limit }} MB</span>
-                    {% if problem.difficulty %}
-                    <span class="difficulty difficulty-{{ problem.difficulty }}">{{ problem.difficulty }}</span>
-                    {% endif %}
-                </div>
-            </div>
+<header class="detail-header">
+    <div class="detail-header-body">
+        <h1>{{ problem.title }}</h1>
+        <div class="detail-meta">
+            <span>⏱ {{ problem.time_limit }}s</span>
+            <span>📦 {{ problem.memory_limit }} MB</span>
+            {% if problem.difficulty %}
+            <span class="difficulty difficulty-{{ problem.difficulty }}">{{ problem.difficulty }}</span>
+            {% endif %}
         </div>
-        {% if problem.description %}
-        <div class="prob-section markdown-body">{{ problem.description|markdown }}</div>
-        {% endif %}
-        {% if problem.input_description %}
-        <div class="prob-section markdown-body">{{ problem.input_description|markdown }}</div>
-        {% endif %}
-        {% if problem.output_description %}
-        <div class="prob-section markdown-body">{{ problem.output_description|markdown }}</div>
-        {% endif %}
-        {% if problem.constraints %}
-        <div class="prob-section markdown-body">{{ problem.constraints|markdown }}</div>
-        {% endif %}
-        {% if problem.samples %}
-        <div class="prob-section">
-            <h3>样例</h3>
-            {% for s in problem.samples %}
-            <div class="sample">
-                <div class="sample-in"><strong>输入：</strong><pre>{{ s.input }}</pre></div>
-                <div class="sample-out"><strong>输出：</strong><pre>{{ s.output }}</pre></div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        {% if problem.hint %}
-        <div class="prob-section hint">{{ problem.hint|markdown }}</div>
-        {% endif %}
     </div>
+</header>
 
-    <div class="submit-panel">
-        <h3>提交代码</h3>
-        {% if user.role == 'admin' %}
-        <form method="post" action="{% url 'problem_delete' folder_id %}"
-              onsubmit="return confirm('确认删除题目 {{ folder_id }}？此操作不可撤销。')"
-              style="margin-bottom:12px">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger" style="width:100%">删除此题目</button>
-        </form>
-        {% endif %}
-        <form method="post" action="{% url 'submit' folder_id %}">
-            {% csrf_token %}
-            <label>语言</label>
-            <select name="language">
-                {% for lang in languages %}
-                <option value="{{ lang }}">{{ lang }}</option>
-                {% endfor %}
-            </select>
-            <label>代码</label>
-            <textarea name="code" rows="12" placeholder="在此处编写代码..."
-                      style="font-family:'JetBrains Mono',monospace"></textarea>
-            <button type="submit" class="btn btn-primary submit-btn">提交评测</button>
-        </form>
-    </div>
+<div class="detail-layout">
+    <article>
+        <div class="article-body">
+            {{ problem.description|markdown }}
+        </div>
+    </article>
+
+    <aside class="detail-sidebar">
+        <div class="submit-card">
+            <h3>提交代码</h3>
+            <form method="post" action="{% url 'submit' folder_id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <label>语言</label>
+                <select name="language">
+                    {% for lang in languages %}
+                    <option value="{{ lang }}" {% if lang == 'cpp' %}selected{% endif %}>{{ lang }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>上传文件</label>
+                <input type="file" name="code_file" accept=".py,.cpp,.c,.java,.go,.rs"
+                       onchange="if(this.files[0]){var r=new FileReader();r.onload=function(e){document.getElementById('code-area').value=e.target.result;};r.readAsText(this.files[0]);}">
+
+                <label>或直接粘贴代码</label>
+                <textarea id="code-area" name="code" rows="10"
+                          placeholder="在此处编写代码..."
+                          style="font-family:'JetBrains Mono',monospace"></textarea>
+
+                <button type="submit" class="btn btn-primary submit-btn">提交评测</button>
+            </form>
+        </div>
+    </aside>
 </div>
 {% endblock %}
