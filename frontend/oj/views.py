@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from oj import api_client as api
+from oj.decorators import admin_required, login_required
 
 
 # ── Auth ──────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ def logout_view(request):
 
 # ── Problems ──────────────────────────────────────────────────
 
+@login_required
 def problem_list(request):
     """List all problems."""
     problems = api.list_problems(request)
@@ -63,6 +65,7 @@ def problem_list(request):
     })
 
 
+@login_required
 def problem_detail(request, folder_id: str):
     """Problem detail + submission form."""
     problem = api.get_problem(request, folder_id)
@@ -81,6 +84,7 @@ def problem_detail(request, folder_id: str):
 
 # ── Submissions ───────────────────────────────────────────────
 
+@login_required
 def submission_create(request, folder_id: str):
     """Submit code for judging."""
     if request.method != 'POST':
@@ -102,6 +106,7 @@ def submission_create(request, folder_id: str):
     return redirect('submission_result', submission_id=sub_id)
 
 
+@login_required
 def submission_result(request, submission_id: str):
     """Show submission result with polling."""
     user = request.session.get('user', {})
@@ -113,6 +118,7 @@ def submission_result(request, submission_id: str):
     })
 
 
+@login_required
 def submission_log(request, submission_id: str):
     """Detailed judge log."""
     user = request.session.get('user', {})
@@ -124,6 +130,7 @@ def submission_log(request, submission_id: str):
     })
 
 
+@login_required
 def submission_list(request):
     """List submissions with filters."""
     user = request.session.get('user', {})
@@ -148,6 +155,7 @@ def submission_list(request):
     })
 
 
+@login_required
 def submission_rejudge(request, submission_id: str):
     """Rejudge a submission (admin only)."""
     user = request.session.get('user', {})
@@ -162,15 +170,9 @@ def submission_rejudge(request, submission_id: str):
 
 # ── Admin ─────────────────────────────────────────────────────
 
-def _check_admin(request):
-    """Ensure user is admin, redirect if not."""
-    user = request.session.get('user', {})
-    if user.get('role') != 'admin':
-        messages.error(request, 'Admin access required.')
-        return False
-    return True
 
 
+@admin_required
 def admin_reset(request):
     """Reset the system."""
     if not _check_admin(request):
@@ -186,6 +188,7 @@ def admin_reset(request):
                   {'user': request.session.get('user', {})})
 
 
+@admin_required
 def admin_export(request):
     """Export all data as JSON download."""
     if not _check_admin(request):
@@ -200,6 +203,7 @@ def admin_export(request):
     return response
 
 
+@admin_required
 def admin_import(request):
     """Import data from JSON upload."""
     if not _check_admin(request):
@@ -215,6 +219,7 @@ def admin_import(request):
                   {'user': request.session.get('user', {})})
 
 
+@admin_required
 def admin_users(request):
     """User management."""
     if not _check_admin(request):

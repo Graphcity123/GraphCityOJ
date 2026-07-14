@@ -110,17 +110,14 @@ def _unwrap(resp: requests.Response) -> dict[str, Any] | None:
 
 def login(request: HttpRequest, username: str,
           password: str) -> dict[str, Any] | None:
-    """Login and return user data. Persists session cookie in Django session."""
+    """Login and return user data."""
     return api_post(request, '/api/auth/login',
-                    data=json.dumps({'username': username,
-                                     'password': password}),
-                    headers={'Content-Type': 'application/json'})
+                    json={'username': username, 'password': password})
 
 
 def logout(request: HttpRequest) -> None:
     """Logout from backend."""
-    api_post(request, '/api/auth/logout',
-             headers={'Content-Type': 'application/json'})
+    api_post(request, '/api/auth/logout')
     request.session.pop('_api_cookies', None)
     request.session.pop('user', None)
     request.session.modified = True
@@ -130,9 +127,7 @@ def register(request: HttpRequest, username: str,
              password: str) -> dict[str, Any] | None:
     """Register a new user."""
     return api_post(request, '/api/users/',
-                    data=json.dumps({'username': username,
-                                     'password': password}),
-                    headers={'Content-Type': 'application/json'})
+                    json={'username': username, 'password': password})
 
 
 def list_problems(request: HttpRequest) -> list[dict[str, Any]]:
@@ -148,9 +143,7 @@ def get_problem(request: HttpRequest, problem_id: str) -> dict[str, Any] | None:
 def create_problem(request: HttpRequest,
                    data: dict[str, Any]) -> dict[str, Any] | None:
     """Create a problem."""
-    return api_post(request, '/api/problems/',
-                    data=json.dumps(data),
-                    headers={'Content-Type': 'application/json'})
+    return api_post(request, '/api/problems/', json=data)
 
 
 def list_languages(request: HttpRequest) -> dict[str, Any]:
@@ -162,10 +155,8 @@ def submit_judge(request: HttpRequest, problem_id: str, language: str,
                  code: str) -> dict[str, Any] | None:
     """Submit code for judging."""
     return api_post(request, '/api/submissions/',
-                    data=json.dumps({'problem_id': problem_id,
-                                     'language': language,
-                                     'code': code}),
-                    headers={'Content-Type': 'application/json'})
+                    json={'problem_id': problem_id,
+                          'language': language, 'code': code})
 
 
 def list_submissions(request: HttpRequest, **filters: Any) -> dict[str, Any]:
@@ -189,14 +180,12 @@ def get_submission_log(request: HttpRequest,
 
 def rejudge(request: HttpRequest, submission_id: str) -> dict[str, Any] | None:
     """Rejudge a submission (admin only)."""
-    return api_put(request, f'/api/submissions/{submission_id}/rejudge',
-                   headers={'Content-Type': 'application/json'})
+    return api_put(request, f'/api/submissions/{submission_id}/rejudge')
 
 
 def reset_system(request: HttpRequest) -> dict[str, Any] | None:
     """Reset the system (admin only)."""
-    return api_post(request, '/api/reset/',
-                    headers={'Content-Type': 'application/json'})
+    return api_post(request, '/api/reset/')
 
 
 def export_data(request: HttpRequest) -> dict[str, Any] | None:
@@ -228,5 +217,4 @@ def change_role(request: HttpRequest, user_id: str,
                 role: str) -> dict[str, Any] | None:
     """Change user role (admin only)."""
     return api_put(request, f'/api/users/{user_id}/role',
-                   data=json.dumps({'role': role}),
-                   headers={'Content-Type': 'application/json'})
+                   json={'role': role})
