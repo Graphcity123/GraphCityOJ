@@ -230,6 +230,7 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 }
 .tc-num { font-size: .75rem; color: var(--text-secondary); }
 .tc-result { font-size: 2.5rem; font-weight: 900; }
+.tc-result .badge { font-size: inherit; }
 .tc-stats { display: flex; flex-direction: column; gap: 2px; font-size: .75rem; color: var(--text-secondary); }
 .tc-ac { border-left: 3px solid var(--success); }
 .tc-wa { border-left: 3px solid var(--danger); }
