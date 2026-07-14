@@ -25,6 +25,8 @@ def render_markdown(text: str) -> str:
     if not text:
         return ""
 
+    text = _expand_merged_cells(text)
+
     html = md.markdown(
         text,
         extensions=[
@@ -106,3 +108,28 @@ def banner_class(details: list) -> str:
     if suffix in ("tle", "mle", "re", "ce"):
         return f"result-partial-{suffix}"
     return "result-partial"
+
+
+def _expand_merged_cells(text: str) -> str:
+    """Expand ^ shorthand in markdown tables (same as cell above)."""
+    lines = text.split("\n")
+    result = []
+    prev_cells: list[str] = []
+    in_table = False
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith("|") and stripped.endswith("|"):
+            cells = [c.strip() for c in stripped[1:-1].split("|")]
+            if all(c.strip("-: ").replace("-", "").replace(":", "") == ""
+                   for c in cells):
+                result.append(line)
+                continue
+            for i, c in enumerate(cells):
+                if c == "^" and i < len(prev_cells):
+                    cells[i] = prev_cells[i]
+            prev_cells = cells
+            result.append("| " + " | ".join(cells) + " |")
+        else:
+            prev_cells = []
+            result.append(line)
+    return "\n".join(result)
