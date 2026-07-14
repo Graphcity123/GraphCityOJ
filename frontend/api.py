@@ -26,18 +26,31 @@ def _url(path: str) -> str:
 
 
 def _api_call(method: str, path: str, **kwargs) -> requests.Response:
-    """Make an API call with proper error handling for connection issues."""
+    """Make an API call with proper error handling.
+
+    Automatically redirects to login on 401 (session expired / logged out).
+    """
     session = get_session()
     try:
-        return session.request(method, _url(path), **kwargs)
+        resp = session.request(method, _url(path), **kwargs)
     except requests.exceptions.ConnectionError as e:
         raise RuntimeError(
             "Cannot connect to backend. Is the server running on http://localhost:8000?"
         ) from e
 
+    if resp.status_code == 401:
+        _clear_user()
+        raise RuntimeError("Session expired. Please log in again.")
+
+    return resp
+
 
 def _handle_response(resp: requests.Response) -> dict[str, Any]:
-    """Unwrap the ApiResponse envelope and raise on errors."""
+    """Unwrap the ApiResponse envelope and raise on errors.
+
+    On 401 (unauthorized), the user's login state is cleared so the
+    UI will show the login page on the next render.
+    """
     try:
         body = resp.json()
     except (json.JSONDecodeError, ValueError):
@@ -47,9 +60,18 @@ def _handle_response(resp: requests.Response) -> dict[str, Any]:
     code = body.get("code", 500)
     if code != 200:
         msg = body.get("msg", body.get("detail", "Unknown error"))
+        if code == 401:
+            _clear_user()
         raise RuntimeError(msg)
 
     return body.get("data")
+
+
+def _clear_user() -> None:
+    """Remove user info from session state and redirect to login."""
+    import streamlit as st
+    st.session_state.user = None
+    st.rerun()
 
 
 # ── Auth ──────────────────────────────────────────────────────
@@ -139,9 +161,16 @@ def submit_judge(problem_id: str, language: str, code: str) -> dict[str, Any]:
 # ── Submissions ────────────────────────────────────────────────
 
 
-def list_submissions(page: int = 1, page_size: int = 50, problem_id: str | None = None) -> dict[str, Any]:
+def list_submissions(
+    page: int = 1,
+    page_size: int = 50,
+    user_id: str | None = None,
+    problem_id: str | None = None,
+) -> dict[str, Any]:
     session = get_session()
     params = f"page={page}&page_size={page_size}"
+    if user_id:
+        params += f"&user_id={user_id}"
     if problem_id:
         params += f"&problem_id={problem_id}"
     resp = _api_call("GET", f"/api/submissions/?{params}")

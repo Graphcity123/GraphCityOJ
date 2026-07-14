@@ -300,8 +300,39 @@ def _render_judge() -> None:
 def _render_submissions() -> None:
     st.markdown("### Submissions")
 
+    user = st.session_state.get("user") or {}
+    is_admin = user.get("role") == "admin"
+
+    # Filters — at least one of user_id / problem_id is required
+    col_f1, col_f2, col_f3 = st.columns([1, 1, 2])
+    filter_user_id: str = ""
+    filter_problem_id: str = ""
+
+    if is_admin:
+        with col_f1:
+            filter_user_id = st.text_input("User ID", key="sub_filter_user")
+        with col_f2:
+            filter_problem_id = st.text_input("Problem ID", key="sub_filter_prob")
+    else:
+        with col_f1:
+            filter_problem_id = st.text_input("Problem ID (optional)", key="sub_filter_prob")
+        filter_user_id = user.get("user_id", "")
+
+    with col_f3:
+        st.caption("At least one filter is required")
+
+    if not filter_user_id and not filter_problem_id:
+        st.info("Enter a User ID or Problem ID to view submissions.")
+        return
+
+    kwargs: dict = {"page": 1, "page_size": 100}
+    if filter_user_id:
+        kwargs["user_id"] = filter_user_id
+    if filter_problem_id:
+        kwargs["problem_id"] = filter_problem_id
+
     try:
-        data = api.list_submissions(page=1, page_size=100)
+        data = api.list_submissions(**kwargs)
     except RuntimeError as e:
         st.error(str(e))
         return
@@ -362,9 +393,9 @@ def _render_admin() -> None:
         if st.button("Reset System", type="primary", use_container_width=True):
             try:
                 api.reset_system()
-                api.login("admin", "admintestpassword")
+                user_data = api.login("admin", "admintestpassword")
                 _set_success("System reset. Logged in as admin.")
-                st.session_state.user = {"user_id": "admin", "username": "admin", "role": "admin"}
+                st.session_state.user = user_data
                 st.rerun()
             except RuntimeError as e:
                 _set_error(e)
