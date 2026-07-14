@@ -87,25 +87,29 @@ async def run_judge(
                 "counts": _TOTAL_SCORE,
             }
 
-    # Run each testcase
-    results = []
-    total_score = 0
+    # Run testcases concurrently (max 4 at a time)
+    sem = asyncio.Semaphore(4)
 
-    for idx, tc in enumerate(testcases):
-        tc_result = await _run_testcase(
-            run_cmd=run_cmd,
-            src_path=str(src_path),
-            work_dir=str(work_dir),
-            exe_path=str(work_dir / "program") if compile_cmd else "",
-            test_input=tc["input"],
-            expected_output=tc["output"],
-            time_limit=time_limit,
-            memory_limit_mb=memory_limit,
-            tc_id=idx + 1,
-        )
-        results.append(tc_result)
-        if tc_result["result"] == "AC":
-            total_score += per_tc_score
+    async def _run_one(idx: int, tc: dict) -> dict:
+        async with sem:
+            return await _run_testcase(
+                run_cmd=run_cmd,
+                src_path=str(src_path),
+                work_dir=str(work_dir),
+                exe_path=str(work_dir / "program") if compile_cmd else "",
+                test_input=tc["input"],
+                expected_output=tc["output"],
+                time_limit=time_limit,
+                memory_limit_mb=memory_limit,
+                tc_id=idx + 1,
+            )
+
+    tasks = [_run_one(i, tc) for i, tc in enumerate(testcases)]
+    results = await asyncio.gather(*tasks)
+
+    total_score = sum(
+        per_tc_score for r in results if r["result"] == "AC"
+    )
 
     return {
         "status": EvalStatus.success.value,

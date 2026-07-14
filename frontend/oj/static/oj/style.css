@@ -212,10 +212,25 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 .result-ac { background: #dcfce7; color: #166534; border-color: var(--success); }
 .result-partial { background: #fffbeb; color: #92400e; border-color: var(--warning); }
 .result-fail { background: #fef2f2; color: #991b1b; border-color: var(--danger); }
-.result-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
-.result-table th, .result-table td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
-.result-table th { font-size: .85rem; color: var(--text-secondary); }
 .result-actions { display: flex; gap: 12px; margin-top: 16px; }
+
+.tc-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; margin: 12px 0; }
+.tc-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    padding: 12px 8px; text-align: center;
+    display: flex; flex-direction: column; gap: 6px;
+}
+.tc-num { font-size: .75rem; color: var(--text-secondary); }
+.tc-result { font-size: 1.1rem; }
+.tc-stats { display: flex; flex-direction: column; gap: 2px; font-size: .75rem; color: var(--text-secondary); }
+.tc-ac { border-left: 3px solid var(--success); }
+.tc-wa { border-left: 3px solid var(--danger); }
+.tc-tle, .tc-mle { border-left: 3px solid #3b82f6; }
+.tc-re { border-left: 3px solid #7c3aed; }
+.tc-ce { border-left: 3px solid #eab308; }
+
+@media (max-width: 1200px) { .tc-grid { grid-template-columns: repeat(5, 1fr); } }
+@media (max-width: 600px) { .tc-grid { grid-template-columns: repeat(3, 1fr); } }
 .sub-meta-row {
     display: flex; justify-content: space-between; align-items: center;
     margin: 8px 0 20px; color: var(--text-secondary); font-size: .95rem;
