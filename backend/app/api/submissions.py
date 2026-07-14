@@ -98,8 +98,10 @@ async def submit_judge(
     if lang_info is None:
         raise LanguageNotFound(body.language)
 
-    sub_counter = next_id("sub")
-    submission_id = sub_counter.split("_")[-1]
+    # Find max existing ID to avoid collisions after restart
+    existing = (await get_submissions()).keys()
+    nums = [int(k) for k in existing if k.isdigit()]
+    submission_id = str(max(nums) + 1) if nums else "1"
     now = datetime.now(timezone.utc).isoformat()
 
     sub_data = {
