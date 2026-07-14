@@ -56,11 +56,11 @@ async def _sync_problems_from_disk():
                     "output": out1.read_text().strip(),
                 }]
         try:
-            desc = existing.description if existing else ""
-            inp_d = existing.input_description if existing else ""
-            out_d = existing.output_description if existing else ""
-            cons = existing.constraints if existing else ""
-            smp = (existing.samples or samples) if existing else samples
+            desc = existing.get("description", "") if existing else ""
+            inp_d = existing.get("input_description", "") if existing else ""
+            out_d = existing.get("output_description", "") if existing else ""
+            cons = existing.get("constraints", "") if existing else ""
+            smp = (existing.get("samples") or samples) if existing else samples
             data = {
                 "id": pid, "title": title,
                 "description": desc, "input_description": inp_d,
