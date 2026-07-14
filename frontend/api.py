@@ -185,6 +185,15 @@ def get_submission(submission_id: str) -> dict[str, Any] | None:
     return _handle_response(resp)
 
 
+def get_submission_log(submission_id: str) -> dict[str, Any] | None:
+    """Get the detailed judge log for a submission (test case results)."""
+    session = get_session()
+    resp = _api_call("GET", f"/api/submissions/{submission_id}/log")
+    if resp.status_code == 404:
+        return None
+    return _handle_response(resp)
+
+
 # ── Admin ──────────────────────────────────────────────────────
 
 

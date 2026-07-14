@@ -116,6 +116,7 @@ def _render_sidebar() -> None:
         pages = {
             "Problems": "problems",
             "Judge": "judge",
+            "Result": "result",
             "Submissions": "submissions",
         }
         if _is_admin():
@@ -289,7 +290,8 @@ def _render_judge() -> None:
                 sub_id = result.get("submission_id", "")
                 _set_success(f"Submitted! ID: {sub_id}")
                 st.session_state["last_submission"] = sub_id
-                _nav_to("submissions")
+                st.session_state["last_problem_id"] = sel_id
+                _nav_to("result")
             except RuntimeError as e:
                 _set_error(e)
 
@@ -382,6 +384,118 @@ def _render_submissions() -> None:
                 st.rerun()
 
 
+# ── Result page ─────────────────────────────────────────────────
+
+
+def _render_result() -> None:
+    import time
+
+    st.markdown("### Submission Result")
+
+    sub_id = st.session_state.get("last_submission")
+    if not sub_id:
+        st.info("No submission yet. Go to Judge to submit code.")
+        if st.button("Go to Judge", use_container_width=True):
+            _nav_to("judge")
+        return
+
+    st.caption(f"Submission: **{sub_id}**")
+
+    # Poll for result
+    placeholder = st.empty()
+
+    max_polls = 30  # max ~30 seconds
+    log_data = None
+
+    for _ in range(max_polls):
+        try:
+            log_data = api.get_submission_log(sub_id)
+        except RuntimeError:
+            time.sleep(1)
+            continue
+
+        if log_data is None:
+            placeholder.warning("Waiting for judge to start...")
+            time.sleep(1)
+            continue
+
+        details = log_data.get("details", [])
+        if details and all(
+            d.get("result") not in ("pending", None) for d in details
+            if isinstance(d, dict)
+        ):
+            break  # judging complete
+
+        placeholder.info("⏳ Judging in progress...")
+        time.sleep(1)
+
+    placeholder.empty()
+
+    if log_data is None:
+        st.error("Failed to load submission result.")
+        return
+
+    score = log_data.get("score", 0)
+    counts = log_data.get("counts", 0)
+    details = log_data.get("details", [])
+
+    # Score summary
+    if score == counts and counts > 0:
+        st.success(f"## ✅ All Passed — Score: {score}/{counts}")
+    elif score > 0:
+        st.warning(f"## ⚠️ Partial — Score: {score}/{counts}")
+    else:
+        st.error(f"## ❌ Failed — Score: {score}/{counts}")
+
+    st.divider()
+
+    # Test case details
+    if not details:
+        st.info("No test case details available.")
+    else:
+        st.markdown("### Test Cases")
+        for tc in details:
+            if not isinstance(tc, dict):
+                continue
+            result = tc.get("result", "?")
+            tc_id = tc.get("id", "?")
+            tc_time = tc.get("time", 0)
+            tc_mem = tc.get("memory", 0)
+
+            result_config = {
+                "AC": ("✅", "green", "Accepted"),
+                "WA": ("❌", "red", "Wrong Answer"),
+                "TLE": ("⏱️", "orange", "Time Limit Exceeded"),
+                "MLE": ("💾", "orange", "Memory Limit Exceeded"),
+                "RE": ("💥", "red", "Runtime Error"),
+                "CE": ("🔧", "red", "Compile Error"),
+            }
+            icon, color, label = result_config.get(result, ("❓", "gray", result))
+
+            cols = st.columns([3, 2, 2, 2])
+            cols[0].markdown(f"**{icon} Case #{tc_id}** — {label}")
+            cols[1].caption(f"⏱ {tc_time}s")
+            cols[2].caption(f"📦 {tc_mem} MB")
+            if tc.get("result") != "AC":
+                cols[3].caption(f"({result})")
+
+    st.divider()
+
+    # Actions
+    col_a1, col_a2, col_a3 = st.columns(3)
+    with col_a1:
+        if st.button("🔄 Refresh", use_container_width=True):
+            st.rerun()
+    with col_a2:
+        prob_id = st.session_state.get("last_problem_id", "")
+        if st.button("📤 Submit Again", use_container_width=True):
+            st.session_state["selected_problem"] = prob_id
+            _nav_to("judge")
+    with col_a3:
+        if st.button("📋 All Submissions", use_container_width=True):
+            _nav_to("submissions")
+
+
 # ── Admin page ──────────────────────────────────────────────────
 
 
@@ -456,6 +570,8 @@ def main() -> None:
         _render_problems()
     elif page == "judge":
         _render_judge()
+    elif page == "result":
+        _render_result()
     elif page == "submissions":
         _render_submissions()
     elif page == "admin" and _is_admin():
