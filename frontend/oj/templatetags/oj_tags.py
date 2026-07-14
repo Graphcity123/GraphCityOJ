@@ -74,6 +74,15 @@ def first_fail(details: list) -> str:
     return ""
 
 
+@register.filter(name='range_n')
+def range_n(value: int) -> range:
+    """Return a range from 1 to value (inclusive)."""
+    try:
+        return range(1, int(value) + 1)
+    except (ValueError, TypeError):
+        return range(0)
+
+
 RESULT_NAMES = {
     "AC": "Accepted", "WA": "Wrong Answer",
     "TLE": "Time Limit Exceeded", "MLE": "Memory Limit Exceeded",
