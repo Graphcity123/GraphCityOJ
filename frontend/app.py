@@ -441,11 +441,11 @@ def _render_result() -> None:
 
     # Score summary
     if score == counts and counts > 0:
-        st.success(f"## ✅ All Passed — Score: {score}/{counts}")
+        st.markdown(f":green[## AC — Score: {score}/{counts}]")
     elif score > 0:
-        st.warning(f"## ⚠️ Partial — Score: {score}/{counts}")
+        st.markdown(f":orange[## WA/TLE/MLE/RE/CE — Score: {score}/{counts}]")
     else:
-        st.error(f"## ❌ Failed — Score: {score}/{counts}")
+        st.markdown(f":red[## Failed — Score: {score}/{counts}]")
 
     st.divider()
 
@@ -462,22 +462,20 @@ def _render_result() -> None:
             tc_time = tc.get("time", 0)
             tc_mem = tc.get("memory", 0)
 
-            result_config = {
-                "AC": ("✅", "green", "Accepted"),
-                "WA": ("❌", "red", "Wrong Answer"),
-                "TLE": ("⏱️", "orange", "Time Limit Exceeded"),
-                "MLE": ("💾", "orange", "Memory Limit Exceeded"),
-                "RE": ("💥", "red", "Runtime Error"),
-                "CE": ("🔧", "red", "Compile Error"),
+            color_map = {
+                "AC": "green",
+                "WA": "red",
+                "TLE": "blue",
+                "MLE": "blue",
+                "RE": "violet",
+                "CE": "orange",
             }
-            icon, color, label = result_config.get(result, ("❓", "gray", result))
+            color = color_map.get(result, "gray")
 
             cols = st.columns([3, 2, 2, 2])
-            cols[0].markdown(f"**{icon} Case #{tc_id}** — {label}")
-            cols[1].caption(f"⏱ {tc_time}s")
-            cols[2].caption(f"📦 {tc_mem} MB")
-            if tc.get("result") != "AC":
-                cols[3].caption(f"({result})")
+            cols[0].markdown(f":{color}[**{result}**]  Case #{tc_id}")
+            cols[1].caption(f":clock1: {tc_time}s")
+            cols[2].caption(f":package: {tc_mem} MB")
 
     st.divider()
 
