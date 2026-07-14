@@ -41,12 +41,21 @@ async def _run_judge_and_update(
     submission_id: str, problem_id: str, language: str,
     code: str, work_dir: Any, user_id: str,
 ):
-    result = await run_judge(
-        problem_id=problem_id,
-        language=language,
-        code=code,
-        work_dir=work_dir,
-    )
+    try:
+        result = await run_judge(
+            problem_id=problem_id,
+            language=language,
+            code=code,
+            work_dir=work_dir,
+        )
+    except Exception as e:
+        result = {
+            "status": "error",
+            "score": 0,
+            "results": [],
+            "detail": str(e),
+            "counts": 0,
+        }
 
     sub = await get_submission(submission_id)
     if sub is None:
