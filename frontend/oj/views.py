@@ -196,8 +196,9 @@ def problem_upload(request):
             result = api.upload_problem(request, md_file, zip_file)
             if result:
                 pid = result.get('id', '')
-                messages.success(request, f'题目创建成功！ID: {pid}')
+                messages.success(request, f'题目创建成功！ID：{pid}')
                 return redirect('problem_detail', folder_id=pid)
+            messages.error(request, '上传失败，请检查文件格式是否正确。')
 
     return render(request, 'oj/problems/upload.html',
                   {'user': user})
