@@ -146,12 +146,24 @@ async def update_problem(req: Request, problem_id: str):
         raise ProblemNotFound(problem_id)
 
     body = await req.json()
-    p.update({k: v for k, v in body.items()
-              if k in ("title", "description", "time_limit", "memory_limit",
-                       "difficulty", "input_description", "output_description",
-                       "constraints", "hint", "source", "author", "tags")})
+    allowed = ("title", "description", "time_limit", "memory_limit",
+               "difficulty", "input_description", "output_description",
+               "constraints", "hint", "source", "author", "tags")
+    p.update({k: v for k, v in body.items() if k in allowed})
     p["updated_at"] = datetime.now(timezone.utc).isoformat()
     await save_problem(problem_id, p)
+
+    # Also sync to disk: update problem.md and config.json
+    prob_dir = settings.problems_dir / problem_id
+    if prob_dir.exists():
+        _write_config(prob_dir, p)
+        md_file = prob_dir / "problem.md"
+        desc = p.get("description", "")
+        if desc:
+            # Rebuild problem.md with YAML front-matter + description
+            front = f"---\ntitle: {p.get('title', problem_id)}\ntime_limit: {p.get('time_limit', 1.0)}\nmemory_limit: {p.get('memory_limit', 256)}\ndifficulty: {p.get('difficulty', 'easy')}\n---\n\n"
+            md_file.write_text(front + desc, encoding="utf-8")
+
     return ApiResponse(code=200, msg="update success", data={"id": problem_id})
 
 
