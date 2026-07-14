@@ -3,7 +3,10 @@
 {% block title %}测试点管理 — GCOJ{% endblock %}
 
 {% block content %}
-<h2>测试点管理：{{ problem.title }}</h2>
+<div style="display:flex;justify-content:space-between;align-items:center;max-width:640px;margin:0 auto 16px">
+<h2 style="margin:0;border:none;padding:0">测试点管理：{{ problem.title }}</h2>
+<a href="{% url 'problem_detail' folder_id %}" class="btn btn-sm">← 返回题目</a>
+</div>
 
 <div style="max-width:640px;margin:0 auto">
 
