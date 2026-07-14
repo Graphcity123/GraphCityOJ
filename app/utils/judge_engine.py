@@ -27,7 +27,7 @@ async def run_judge(
     if problem is None:
         return {
             "status": EvalStatus.error.value,
-            "score": 0.0,
+            "score": 0,
             "results": [],
             "detail": f"Problem '{problem_id}' not found",
             "counts": 0,
@@ -38,7 +38,7 @@ async def run_judge(
     if lang_info is None:
         return {
             "status": EvalStatus.error.value,
-            "score": 0.0,
+            "score": 0,
             "results": [],
             "detail": f"Language '{language}' not supported",
             "counts": 0,
@@ -48,7 +48,7 @@ async def run_judge(
     if not testcases:
         return {
             "status": EvalStatus.error.value,
-            "score": 0.0,
+            "score": 0,
             "results": [],
             "detail": "No testcases configured",
             "counts": 0,
@@ -82,7 +82,7 @@ async def run_judge(
         if proc.returncode != 0:
             return {
                 "status": EvalStatus.success.value,
-                "score": 0.0,
+                "score": 0,
                 "results": [{"id": tc_idx + 1, "result": "CE", "time": 0.0, "memory": 0}
                             for tc_idx in range(len(testcases))],
                 "detail": stderr.decode("utf-8", errors="replace")[:500],
@@ -91,7 +91,7 @@ async def run_judge(
 
     # Run each testcase
     results = []
-    total_score = 0.0
+    total_score = 0
 
     for idx, tc in enumerate(testcases):
         tc_result = await _run_testcase(
@@ -111,7 +111,7 @@ async def run_judge(
 
     return {
         "status": EvalStatus.success.value,
-        "score": round(total_score, 1),
+        "score": total_score,
         "results": results,
         "detail": "",
         "counts": total_counts,

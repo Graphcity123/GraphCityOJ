@@ -108,7 +108,7 @@ async def submit_judge(
         "language": body.language,
         "code": body.code,
         "status": EvalStatus.pending.value,
-        "score": 0.0,
+        "score": 0,
         "created_at": now,
         "results": [],
         "detail": "",
@@ -210,7 +210,7 @@ async def rejudge_submission(req: Request, submission_id: str, background_tasks:
         raise SubmissionNotFound(submission_id)
 
     sub["status"] = "pending"
-    sub["score"] = 0.0
+    sub["score"] = 0
     sub["results"] = []
     sub["detail"] = ""
     save_submission(submission_id, sub)

@@ -99,7 +99,7 @@ class JudgeResultItem(BaseModel):
 class JudgeResponse(BaseModel):
     submission_id: str
     status: str
-    score: float
+    score: int
     counts: int
     results: list[JudgeResultItem] = []
     detail: str = ""
@@ -134,7 +134,7 @@ class SubmissionBrief(BaseModel):
     problem_id: str
     language: str
     status: str
-    score: float
+    score: int
     created_at: str
 
 
@@ -146,7 +146,7 @@ class LogEntry(BaseModel):
     user_id: str
     problem_id: str
     status: str
-    score: float
+    score: int
     detail: str
     created_at: str
 
