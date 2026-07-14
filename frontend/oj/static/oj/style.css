@@ -143,14 +143,38 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 
 .detail-layout { display: flex; gap: 32px; align-items: flex-start; }
 .detail-layout article { flex: 1; min-width: 0; background: var(--card-bg); padding: 32px 40px; }
-.detail-sidebar { position: sticky; top: 72px; width: 320px; flex-shrink: 0; }
+.detail-sidebar { position: sticky; top: 72px; width: 300px; flex-shrink: 0; }
 
-.submit-card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; }
-.submit-card h3 { font-size: 16px; color: var(--text); margin-bottom: 14px; border-left: 3px solid var(--primary); padding-left: 10px; }
-.submit-card label { display: block; font-weight: 600; font-size: .85rem; margin: 10px 0 4px; color: var(--text); }
-.submit-card select, .submit-card input[type=file], .submit-card textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); font-size: .9rem; background: var(--bg); color: var(--text); font-family: inherit; }
-.submit-card textarea { resize: vertical; min-height: 160px; font-family: 'JetBrains Mono', monospace; }
-.submit-btn { width: 100%; margin-top: 14px; }
+.submit-card { background: var(--card-bg); border: 1px solid var(--border); padding: 24px; }
+.submit-card h3 { font-size: 16px; font-weight: 900; color: var(--text); margin-bottom: 16px; border-left: 3px solid var(--primary); padding-left: 10px; }
+.submit-card label { display: block; font-weight: 600; font-size: .85rem; margin: 12px 0 4px; color: var(--text-secondary); }
+.submit-card select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    font-size: .9rem; background: var(--bg); color: var(--text);
+    font-family: inherit; cursor: pointer;
+    transition: border-color .15s;
+}
+.submit-card select:focus { outline: none; border-color: var(--primary); }
+.submit-card input[type=file] {
+    width: 100%; padding: 8px; border: 1px dashed var(--border);
+    font-size: .85rem; background: var(--bg); color: var(--text-secondary);
+    font-family: inherit; cursor: pointer;
+}
+.submit-card input[type=file]::file-selector-button {
+    font-family: inherit; font-size: .8rem; padding: 6px 14px;
+    margin-right: 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); cursor: pointer;
+}
+.submit-card textarea {
+    width: 100%; padding: 12px; border: 1px solid var(--border);
+    font-size: 13px; background: var(--code-bg); color: var(--code-text);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    resize: vertical; min-height: 180px; line-height: 1.5;
+    transition: border-color .15s;
+}
+.submit-card textarea:focus { outline: none; border-color: var(--primary); }
+.submit-card textarea::placeholder { color: #8892a4; }
+.submit-btn { width: 100%; margin-top: 16px; padding: 12px; font-size: .95rem; font-weight: 700; }
 
 .article-body { font-size: 16px; }
 .article-body h2 { margin-top: 32px; margin-bottom: 12px; border: none !important; font-size: 24px; color: #444; font-weight: 700; padding-left: 0 !important; }
