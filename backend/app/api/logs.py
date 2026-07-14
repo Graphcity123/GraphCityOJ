@@ -45,12 +45,22 @@ async def query_submission_log(req: Request, submission_id: str):
     problem = await get_problem(sub["problem_id"])
     public_cases = problem.get("public_cases", True) if problem else True
 
-    details = _parse_submission_results(sub)
+    all_results = _parse_submission_results(sub)
+
+    # Find first non-AC from ALL results (before filtering for permissions)
+    first_fail = ""
+    for r in all_results:
+        if isinstance(r, dict) and r.get("result", "AC") != "AC":
+            first_fail = r["result"]
+            break
+
     # Only owner/admin can see test case details
     if not is_admin and not is_owner:
         details = []
     elif not is_admin and not public_cases:
         details = []
+    else:
+        details = all_results
 
     await add_audit({
         "user_id": user["user_id"],
@@ -59,13 +69,6 @@ async def query_submission_log(req: Request, submission_id: str):
         "time": datetime.now(timezone.utc).isoformat().split("T")[0],
         "status": "200" if (is_admin or public_cases) else "403",
     })
-
-    # Find first non-AC result for status display
-    first_fail = ""
-    for r in details:
-        if isinstance(r, dict) and r.get("result", "AC") != "AC":
-            first_fail = r["result"]
-            break
 
     return ApiResponse(code=200, msg="success", data={
         "details": details,

@@ -31,7 +31,7 @@
                 {% elif s.score > 0 %}
                 <span class="badge badge-{{ s.first_fail|default:'wa'|lower }}">{{ s.first_fail|default:'WA' }}</span>
                 {% else %}
-                <span class="badge badge-ce">CE</span>
+                <span class="badge badge-ce">{{ s.first_fail|default:'Failed' }}</span>
                 {% endif %}
             {% else %}
             <span class="badge badge-pending">{{ s.status }}</span>
