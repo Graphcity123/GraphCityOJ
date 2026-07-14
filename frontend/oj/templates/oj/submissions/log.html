@@ -6,7 +6,15 @@
 <p>提交编号：<strong>{{ submission_id }}</strong></p>
 
 {% if log_data %}
-    <p>得分：<strong>{{ log_data.score }} / {{ log_data.counts }}</strong></p>
+    {% with score=log_data.score|default:0 counts=log_data.counts|default:0 %}
+    {% if score == counts and counts > 0 %}
+    <div class="result-banner result-ac">✅ Accepted — {{ score }} / {{ counts }}</div>
+    {% elif score > 0 %}
+    <div class="result-banner result-partial">⚠️ Wrong Answer — {{ score }} / {{ counts }}</div>
+    {% else %}
+    <div class="result-banner result-fail">❌ Failed — {{ score }} / {{ counts }}</div>
+    {% endif %}
+    {% endwith %}
     {% if log_data.details %}
     <table class="result-table">
         <thead><tr><th>#</th><th>结果</th><th>用时</th><th>内存</th></tr></thead>
