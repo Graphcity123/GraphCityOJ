@@ -136,6 +136,21 @@ async def get_problem_detail(req: Request, problem_id: str):
     })
 
 
+@router.put("/{problem_id}")
+async def update_problem(req: Request, problem_id: str,
+                         body: ProblemCreate):
+    """Update problem metadata (admin only)."""
+    require_admin(req)
+    p = await get_problem(problem_id)
+    if p is None:
+        raise ProblemNotFound(problem_id)
+    data = body.model_dump()
+    data["id"] = problem_id  # preserve original ID
+    data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await save_problem(problem_id, data)
+    return ApiResponse(code=200, msg="update success", data={"id": problem_id})
+
+
 @router.delete("/{problem_id}")
 async def remove_problem(req: Request, problem_id: str):
     require_login(req)

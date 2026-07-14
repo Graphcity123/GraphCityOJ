@@ -210,6 +210,12 @@ def upload_problem(request: HttpRequest,
     return _unwrap(request, resp)
 
 
+def update_problem(request: HttpRequest, problem_id: str,
+                   data: dict[str, Any]) -> dict[str, Any] | None:
+    """Update problem metadata (admin only)."""
+    return api_put(request, f'/api/problems/{problem_id}', json=data)
+
+
 def delete_problem(request: HttpRequest,
                    problem_id: str) -> dict[str, Any] | None:
     """Delete a problem (admin only)."""

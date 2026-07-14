@@ -1,0 +1,43 @@
+{% extends 'oj/base.html' %}
+{% block title %}编辑题目 — GCOJ{% endblock %}
+
+{% block content %}
+<h2>编辑题目：{{ problem.title }}</h2>
+
+<form method="post" class="auth-form" style="max-width:600px">
+    {% csrf_token %}
+    <label>标题</label>
+    <input type="text" name="title" value="{{ problem.title }}" required>
+
+    <label>描述 (Markdown)</label>
+    <textarea name="description" rows="8">{{ problem.description }}</textarea>
+
+    <label>输入说明</label>
+    <input type="text" name="input_description" value="{{ problem.input_description }}">
+
+    <label>输出说明</label>
+    <input type="text" name="output_description" value="{{ problem.output_description }}">
+
+    <label>数据范围</label>
+    <input type="text" name="constraints" value="{{ problem.constraints }}">
+
+    <label>提示</label>
+    <input type="text" name="hint" value="{{ problem.hint }}">
+
+    <div style="display:flex;gap:12px">
+        <div style="flex:1"><label>时间限制 (s)</label>
+        <input type="number" name="time_limit" value="{{ problem.time_limit }}" step="0.1" min="0.1"></div>
+        <div style="flex:1"><label>内存限制 (MB)</label>
+        <input type="number" name="memory_limit" value="{{ problem.memory_limit }}" min="16"></div>
+    </div>
+
+    <label>难度</label>
+    <select name="difficulty">
+        {% for d in "beginner,easy,medium,hard,expert".split(",") %}
+        <option value="{{ d }}" {% if problem.difficulty == d %}selected{% endif %}>{{ d }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit" class="btn btn-primary">保存修改</button>
+</form>
+{% endblock %}

@@ -1,5 +1,5 @@
 ---
-title: 多项式乘法
+title: 「CTS2019 | CTSC2019」氪金手游
 time_limit: 1.0
 memory_limit: 500
 difficulty: expert
