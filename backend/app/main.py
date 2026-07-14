@@ -30,15 +30,21 @@ async def lifespan(app: FastAPI):
     # Sync problems from disk to DB
     from app.storage import get_problem, get_problems, save_problem
     from app.config import settings
+    import logging
+    _log = logging.getLogger("uvicorn")
     if settings.problems_dir.exists():
+        _log.info(f"Scanning problems dir: {settings.problems_dir}")
         for folder in sorted(settings.problems_dir.iterdir()):
             if not folder.is_dir():
                 continue
             pid = folder.name
             if not pid.isdigit():
+                _log.info(f"  Skip non-numeric: {pid}")
                 continue
             if await get_problem(pid) is not None:
+                _log.info(f"  Already in DB: {pid}")
                 continue
+            _log.info(f"  Registering problem: {pid}")
             # Discover testcase count and config from disk
             tc_count = len([f for f in folder.iterdir()
                            if f.name.endswith(".in")])
@@ -66,16 +72,22 @@ async def lifespan(app: FastAPI):
                         "input": in1.read_text().strip(),
                         "output": out1.read_text().strip(),
                     }]
-            await save_problem(pid, {
-                "id": pid, "title": title,
-                "description": "", "input_description": "",
-                "output_description": "", "constraints": "",
-                "samples": samples,
-                "testcases": [],
-                "testcase_count": tc_count,
-                "time_limit": time_limit, "memory_limit": memory_limit,
-                "difficulty": difficulty,
-            })
+            try:
+                await save_problem(pid, {
+                    "id": pid, "title": title,
+                    "description": "", "input_description": "",
+                    "output_description": "", "constraints": "",
+                    "samples": samples,
+                    "testcases": [],
+                    "testcase_count": tc_count,
+                    "time_limit": time_limit, "memory_limit": memory_limit,
+                    "difficulty": difficulty,
+                })
+                _log.info(f"    Registered: {pid} ({title}, {tc_count} testcases)")
+            except Exception as e:
+                _log.error(f"    Failed to register {pid}: {e}")
+    else:
+        _log.warning(f"Problems dir not found: {settings.problems_dir}")
     yield
 
 
