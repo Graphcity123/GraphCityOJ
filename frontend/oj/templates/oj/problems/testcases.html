@@ -5,46 +5,58 @@
 {% block content %}
 <h2>测试点管理：{{ problem.title }}</h2>
 
-<div class="admin-grid">
-    <div class="admin-card" style="grid-column:1/-1">
-        <h3>现有测试点（{{ problem.testcase_count }}）</h3>
+<div style="max-width:640px;margin:0 auto">
+
+    <!-- Row 1: existing test cases -->
+    <div style="border:1px solid var(--border);padding:16px;background:var(--card-bg);margin-bottom:16px">
+        <strong style="font-size:.9rem">现有测试点（{{ problem.testcase_count }}）</strong>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
         {% if problem.testcase_count > 0 %}
-        <div style="display:flex;flex-wrap:wrap;gap:6px">
         {% for i in problem.testcase_count|range_n %}
-            <form method="post" onsubmit="return confirm('删除测试点 {{ i }}？')">
-                {% csrf_token %}
-                <input type="hidden" name="tc_n" value="{{ i }}">
-                <button type="submit" name="action" value="del_tc" class="tag"
-                        style="cursor:pointer;font-family:'JetBrains Mono',monospace">#{{ i }}</button>
-            </form>
+            <span style="display:inline-flex;align-items:center;gap:0;border:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:13px">
+                <span style="padding:3px 8px">#{{ i }}</span>
+                <form method="post" style="display:inline" onsubmit="return confirm('删除测试点 {{ i }}？')">
+                    {% csrf_token %}
+                    <input type="hidden" name="tc_n" value="{{ i }}">
+                    <button type="submit" name="action" value="del_tc"
+                            style="border:none;border-left:1px solid var(--border);background:none;color:var(--text-secondary);cursor:pointer;padding:3px 7px;font-size:14px;line-height:1"
+                            title="删除">×</button>
+                </form>
+            </span>
         {% endfor %}
-        </div>
         {% else %}
-        <p style="color:var(--text-secondary);font-size:.9rem">暂无测试点</p>
+        <span style="color:var(--text-secondary);font-size:.85rem">暂无</span>
         {% endif %}
+        </div>
     </div>
 
-    <div class="admin-card">
-        <h3>重新上传</h3>
-        <p>上传 .zip 文件，替换所有现有测试点。</p>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="file" name="tc_zip" accept=".zip" style="margin-bottom:8px">
-            <button type="submit" name="action" value="reupload" class="btn btn-primary">上传替换</button>
-        </form>
+    <!-- Row 2: re-upload + add -->
+    <div style="display:flex;gap:16px">
+        <div style="flex:1;border:1px solid var(--border);padding:16px;background:var(--card-bg)">
+            <strong style="font-size:.9rem">重新上传</strong>
+            <p style="font-size:.8rem;color:var(--text-secondary);margin:4px 0 8px">上传 .zip 替换全部测试点</p>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="file" name="tc_zip" accept=".zip" style="margin-bottom:8px;width:100%">
+                <button type="submit" name="action" value="reupload" class="btn btn-primary" style="width:100%">上传替换</button>
+            </form>
+        </div>
+
+        <div style="flex:1;border:1px solid var(--border);padding:16px;background:var(--card-bg)">
+            <strong style="font-size:.9rem">新增测试点</strong>
+            <p style="font-size:.8rem;color:var(--text-secondary);margin:4px 0 8px">上传文件或粘贴内容</p>
+            <form method="post" enctype="multipart/form-data" class="auth-form">
+                {% csrf_token %}
+                <label style="font-size:.8rem">输入文件 (.in)</label>
+                <input type="file" name="in_file" accept=".in" style="margin-bottom:6px">
+                <label style="font-size:.8rem">输出文件 (.out / .ans)</label>
+                <input type="file" name="out_file" accept=".out,.ans" style="margin-bottom:8px">
+                <textarea name="tc_input" rows="2" placeholder="或直接粘贴输入数据"></textarea>
+                <textarea name="tc_output" rows="2" placeholder="或直接粘贴期望输出" style="margin-bottom:8px"></textarea>
+                <button type="submit" name="action" value="add_tc" class="btn btn-primary" style="width:100%">添加</button>
+            </form>
+        </div>
     </div>
 
-    <div class="admin-card">
-        <h3>新增测试点</h3>
-        <p>上传 .in / .out 文件，或在下方粘贴内容。</p>
-        <form method="post" enctype="multipart/form-data" class="auth-form">
-            {% csrf_token %}
-            <input type="file" name="in_file" accept=".in" style="margin-bottom:4px">
-            <input type="file" name="out_file" accept=".out,.ans" style="margin-bottom:8px">
-            <textarea name="tc_input" rows="2" placeholder="输入数据"></textarea>
-            <textarea name="tc_output" rows="2" placeholder="期望输出" style="margin-bottom:8px"></textarea>
-            <button type="submit" name="action" value="add_tc" class="btn btn-primary">添加</button>
-        </form>
-    </div>
 </div>
 {% endblock %}
