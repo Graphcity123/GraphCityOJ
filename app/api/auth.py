@@ -29,7 +29,7 @@ def _verify_password(password: str, stored: str) -> bool:
 @router.post("/login")
 async def login(req: Request, body: UserLogin):
     user = get_user_by_username(body.username)
-    if user is None:
+    if user is None or not body.password:
         raise InvalidCredentials()
     if user.get("role") == "banned":
         raise AccountBanned()
