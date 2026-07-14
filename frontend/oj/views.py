@@ -283,39 +283,6 @@ def problem_testcases(request, folder_id: str):
         'user': user,
     })
 
-        data = {
-            "id": folder_id,
-            "title": request.POST.get('title', problem.get('title', '')),
-            "description": request.POST.get('description',
-                                            problem.get('description', '')),
-            "input_description": problem.get('input_description', ''),
-            "output_description": problem.get('output_description', ''),
-            "constraints": problem.get('constraints', ''),
-            "hint": problem.get('hint', ''),
-            "time_limit": float(request.POST.get('time_limit',
-                                                 problem.get('time_limit', 1.0))),
-            "memory_limit": int(request.POST.get('memory_limit',
-                                                 problem.get('memory_limit', 256))),
-            "difficulty": request.POST.get('difficulty',
-                                          problem.get('difficulty', 'easy')),
-            "samples": problem.get('samples', []),
-            "testcases": problem.get('testcases', []),
-            "tags": problem.get('tags', []),
-            "source": problem.get('source', ''),
-            "author": problem.get('author', ''),
-        }
-        result = api.update_problem(request, folder_id, data)
-        if result:
-            messages.success(request, '题目已更新。')
-            return redirect('problem_detail', folder_id=folder_id)
-        messages.error(request, '更新失败。')
-
-    return render(request, 'oj/problems/edit.html', {
-        'problem': problem,
-        'folder_id': folder_id,
-        'user': user,
-    })
-
 
 @login_required
 def problem_delete(request, folder_id: str):
