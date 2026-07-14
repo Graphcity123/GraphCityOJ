@@ -12,3 +12,4 @@ env/
 .vscode/
 .claude/
 /work/
+_*.py
