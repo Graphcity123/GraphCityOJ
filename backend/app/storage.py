@@ -348,13 +348,22 @@ def _update_model(model: Any, data: dict[str, Any]) -> None:
 
 
 def _load_md_from_disk(problem_id: str) -> str | None:
-    """Load problem.md from disk if it exists."""
+    """Load problem.md from disk, stripping YAML front-matter."""
     from pathlib import Path
     from app.config import settings
     md_file = settings.problems_dir / problem_id / "problem.md"
-    if md_file.exists():
-        return md_file.read_text(encoding="utf-8")
-    return None
+    if not md_file.exists():
+        return None
+    text = md_file.read_text(encoding="utf-8")
+    # Strip YAML front-matter (between --- markers)
+    lines = text.split("\n")
+    if lines and lines[0].strip() == "---":
+        end = 1
+        while end < len(lines) and lines[end].strip() != "---":
+            end += 1
+        if end < len(lines):
+            text = "\n".join(lines[end + 1:]).strip()
+    return text
 
 
 def _load_testcases_from_disk(
