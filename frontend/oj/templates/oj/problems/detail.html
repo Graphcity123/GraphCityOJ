@@ -9,7 +9,17 @@
         <div class="detail-meta">
             <span>时间限制 / {{ problem.time_limit }}s</span>
             <span>空间限制 / {{ problem.memory_limit }} MB</span>
+            {% if problem.difficulty %}
+            <span class="difficulty difficulty-{{ problem.difficulty }}">{{ problem.difficulty }}</span>
+            {% endif %}
         </div>
+        {% if problem.tags %}
+        <div class="detail-tags">
+            {% for tag in problem.tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 </header>
 
