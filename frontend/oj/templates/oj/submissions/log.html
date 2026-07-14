@@ -14,7 +14,9 @@
     {% if score == counts and counts > 0 %}
     <div class="result-banner result-ac">✅ Accepted — {{ score }} / {{ counts }}</div>
     {% elif score > 0 %}
-    <div class="result-banner {{ log_data.details|banner_class }}">⚠️ {{ log_data.details|first_fail|result_name }} — {{ score }} / {{ counts }}</div>
+    <div class="result-banner {% if log_data.first_fail %}result-partial-{{ log_data.first_fail|lower }}{% else %}result-partial{% endif %}">
+        ⚠️ {{ log_data.first_fail|default:'WA'|result_name }} — {{ score }} / {{ counts }}
+    </div>
     {% else %}
     <div class="result-banner result-fail">❌ Failed — {{ score }} / {{ counts }}</div>
     {% endif %}

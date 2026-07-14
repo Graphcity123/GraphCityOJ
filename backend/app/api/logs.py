@@ -60,10 +60,18 @@ async def query_submission_log(req: Request, submission_id: str):
         "status": "200" if (is_admin or public_cases) else "403",
     })
 
+    # Find first non-AC result for status display
+    first_fail = ""
+    for r in details:
+        if isinstance(r, dict) and r.get("result", "AC") != "AC":
+            first_fail = r["result"]
+            break
+
     return ApiResponse(code=200, msg="success", data={
         "details": details,
         "score": sub.get("score", 0),
         "counts": sub.get("counts", 0),
+        "first_fail": first_fail,
     })
 
 

@@ -27,11 +27,11 @@
             <span class="badge badge-pending">评测中</span>
             {% elif s.status == 'success' %}
                 {% if s.score == s.counts and s.counts > 0 %}
-                <span class="badge badge-ac">Accepted</span>
+                <span class="badge badge-ac">AC</span>
                 {% elif s.score > 0 %}
-                <span class="badge badge-wa">{{ s.first_fail|default:'WA' }}</span>
+                <span class="badge badge-{{ s.first_fail|default:'wa'|lower }}">{{ s.first_fail|default:'WA' }}</span>
                 {% else %}
-                <span class="badge badge-ce">Failed</span>
+                <span class="badge badge-ce">CE</span>
                 {% endif %}
             {% else %}
             <span class="badge badge-pending">{{ s.status }}</span>
