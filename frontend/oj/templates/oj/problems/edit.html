@@ -1,92 +1,37 @@
 {% extends 'oj/base.html' %}
-{% load oj_tags %}
 {% block title %}编辑题目 — GCOJ{% endblock %}
 
 {% block content %}
 <h2>编辑题目：{{ problem.title }}</h2>
 
-<div style="display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border)">
-    <a href="?tab=desc" class="btn"
-       style="border:none;border-bottom:2px solid {% if request.GET.tab != 'tc' %}var(--primary){% else %}transparent{% endif %};margin-bottom:-2px;font-weight:700">
-        题目描述
-    </a>
-    <a href="?tab=tc" class="btn"
-       style="border:none;border-bottom:2px solid {% if request.GET.tab == 'tc' %}var(--primary){% else %}transparent{% endif %};margin-bottom:-2px;font-weight:700">
-        测试点管理 ({{ problem.testcase_count }})
-    </a>
-</div>
+<form method="post" class="auth-form" style="max-width:600px">
+    {% csrf_token %}
+    <label>标题</label>
+    <input type="text" name="title" value="{{ problem.title }}" required>
 
-{% if request.GET.tab == 'tc' %}
+    <label>描述 (Markdown)</label>
+    <textarea name="description" rows="14">{{ problem.description }}</textarea>
 
-    <form method="post" enctype="multipart/form-data" style="max-width:600px;margin-bottom:20px">
-        {% csrf_token %}
-        <label>重新上传测试数据 (.zip)</label>
-        <div style="display:flex;gap:8px">
-            <input type="file" name="tc_zip" accept=".zip" style="flex:1">
-            <button type="submit" name="action" value="reupload" class="btn btn-primary">上传替换</button>
+    <div>
+        <div style="display:flex;gap:12px;margin-bottom:4px">
+            <span style="flex:1;font-weight:600;font-size:.9rem">时间限制 (s)</span>
+            <span style="flex:1;font-weight:600;font-size:.9rem">内存限制 (MB)</span>
         </div>
-    </form>
-
-    <div style="max-width:600px;margin-bottom:12px">
-        <strong>现有测试点：</strong>
-        {% if problem.testcase_count > 0 %}
-        <span style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
-        {% for i in problem.testcase_count|range_n %}
-            <form method="post" style="display:inline" onsubmit="return confirm('删除测试点 {{ i }}？')">
-                {% csrf_token %}
-                <input type="hidden" name="tc_n" value="{{ i }}">
-                <button type="submit" name="action" value="del_tc" class="btn btn-sm btn-danger"
-                        style="font-family:'JetBrains Mono',monospace">#{{ i }} ✕</button>
-            </form>
-        {% endfor %}
-        </span>
-        {% else %}
-        <span style="color:var(--text-secondary)">暂无</span>
-        {% endif %}
+        <div style="display:flex;gap:12px">
+            <input type="number" name="time_limit" value="{{ problem.time_limit }}" step="0.1" min="0.1" style="flex:1">
+            <input type="number" name="memory_limit" value="{{ problem.memory_limit }}" min="16" style="flex:1">
+        </div>
     </div>
 
-    <form method="post" style="max-width:600px;margin-bottom:20px">
-        {% csrf_token %}
-        <label>新增测试点</label>
-        <textarea name="tc_input" rows="3" placeholder="输入数据"
-                  style="width:100%;font-family:'JetBrains Mono',monospace;padding:8px;border:1px solid var(--border);background:var(--bg);margin-bottom:6px"></textarea>
-        <textarea name="tc_output" rows="3" placeholder="期望输出"
-                  style="width:100%;font-family:'JetBrains Mono',monospace;padding:8px;border:1px solid var(--border);background:var(--bg)"></textarea>
-        <button type="submit" name="action" value="add_tc" class="btn" style="margin-top:8px">添加</button>
-    </form>
+    <label>难度</label>
+    <select name="difficulty">
+        <option value="beginner" {% if problem.difficulty == 'beginner' %}selected{% endif %}>beginner</option>
+        <option value="easy" {% if problem.difficulty == 'easy' %}selected{% endif %}>easy</option>
+        <option value="medium" {% if problem.difficulty == 'medium' %}selected{% endif %}>medium</option>
+        <option value="hard" {% if problem.difficulty == 'hard' %}selected{% endif %}>hard</option>
+        <option value="expert" {% if problem.difficulty == 'expert' %}selected{% endif %}>expert</option>
+    </select>
 
-{% else %}
-
-    <form method="post" class="auth-form" style="max-width:600px">
-        {% csrf_token %}
-        <label>标题</label>
-        <input type="text" name="title" value="{{ problem.title }}" required>
-
-        <label>描述 (Markdown)</label>
-        <textarea name="description" rows="14">{{ problem.description }}</textarea>
-
-        <div>
-            <div style="display:flex;gap:12px;margin-bottom:4px">
-                <span style="flex:1;font-weight:600;font-size:.9rem">时间限制 (s)</span>
-                <span style="flex:1;font-weight:600;font-size:.9rem">内存限制 (MB)</span>
-            </div>
-            <div style="display:flex;gap:12px">
-                <input type="number" name="time_limit" value="{{ problem.time_limit }}" step="0.1" min="0.1" style="flex:1">
-                <input type="number" name="memory_limit" value="{{ problem.memory_limit }}" min="16" style="flex:1">
-            </div>
-        </div>
-
-        <label>难度</label>
-        <select name="difficulty">
-            <option value="beginner" {% if problem.difficulty == 'beginner' %}selected{% endif %}>beginner</option>
-            <option value="easy" {% if problem.difficulty == 'easy' %}selected{% endif %}>easy</option>
-            <option value="medium" {% if problem.difficulty == 'medium' %}selected{% endif %}>medium</option>
-            <option value="hard" {% if problem.difficulty == 'hard' %}selected{% endif %}>hard</option>
-            <option value="expert" {% if problem.difficulty == 'expert' %}selected{% endif %}>expert</option>
-        </select>
-
-        <button type="submit" name="action" value="save" class="btn btn-primary">保存修改</button>
-    </form>
-
-{% endif %}
+    <button type="submit" class="btn btn-primary">保存修改</button>
+</form>
 {% endblock %}

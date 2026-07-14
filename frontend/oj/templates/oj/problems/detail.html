@@ -54,9 +54,10 @@
                 <button type="submit" class="btn btn-primary submit-btn">提交评测</button>
             </form>
             {% if user.role == 'admin' %}
-            <div style="display:flex;gap:8px;margin-top:12px">
-                <a href="{% url 'problem_edit' folder_id %}" class="btn" style="flex:1;text-align:center">编辑</a>
-                <button type="submit" form="delete-form" class="btn btn-danger" style="flex:1">删除</button>
+            <div style="margin-top:12px">
+                <a href="{% url 'problem_edit' folder_id %}" class="btn" style="width:100%;text-align:center;margin-bottom:6px">编辑题目</a>
+                <a href="{% url 'problem_testcases' folder_id %}" class="btn" style="width:100%;text-align:center;margin-bottom:6px">测试点 ({{ problem.testcase_count }})</a>
+                <button type="submit" form="delete-form" class="btn btn-danger" style="width:100%">删除题目</button>
             </div>
             <form id="delete-form" method="post" action="{% url 'problem_delete' folder_id %}"
                   onsubmit="return confirm('确认删除？不可撤销。')" style="display:none">

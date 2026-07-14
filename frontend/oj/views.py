@@ -208,26 +208,80 @@ def problem_edit(request, folder_id: str):
         return redirect('problem_list')
 
     if request.method == 'POST':
-        action = request.POST.get('action', 'save')
+        data = {
+            "id": folder_id,
+            "title": request.POST.get('title', problem.get('title', '')),
+            "description": request.POST.get('description',
+                                            problem.get('description', '')),
+            "input_description": problem.get('input_description', ''),
+            "output_description": problem.get('output_description', ''),
+            "constraints": problem.get('constraints', ''),
+            "hint": problem.get('hint', ''),
+            "time_limit": float(request.POST.get('time_limit',
+                                                 problem.get('time_limit', 1.0))),
+            "memory_limit": int(request.POST.get('memory_limit',
+                                                 problem.get('memory_limit', 256))),
+            "difficulty": request.POST.get('difficulty',
+                                          problem.get('difficulty', 'easy')),
+            "samples": problem.get('samples', []),
+            "testcases": problem.get('testcases', []),
+            "tags": problem.get('tags', []),
+            "source": problem.get('source', ''),
+            "author": problem.get('author', ''),
+        }
+        result = api.update_problem(request, folder_id, data)
+        if result:
+            messages.success(request, '题目已更新。')
+            return redirect('problem_detail', folder_id=folder_id)
+        messages.error(request, '更新失败。')
+
+    return render(request, 'oj/problems/edit.html', {
+        'problem': problem,
+        'folder_id': folder_id,
+        'user': user,
+    })
+
+
+@login_required
+def problem_testcases(request, folder_id: str):
+    """Manage test cases (admin only)."""
+    user = request.session.get('user', {})
+    if user.get('role') != 'admin':
+        messages.error(request, '仅限管理员。')
+        return redirect('problem_detail', folder_id=folder_id)
+
+    problem = api.get_problem(request, folder_id)
+    if problem is None:
+        messages.error(request, '题目未找到。')
+        return redirect('problem_list')
+
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
         if action == 'add_tc':
             inp = request.POST.get('tc_input', '')
             out = request.POST.get('tc_output', '')
             if inp and out:
                 api.add_testcase(request, folder_id, inp, out)
                 messages.success(request, '测试点已添加。')
-            return redirect('problem_edit', folder_id=folder_id)
+            return redirect('problem_testcases', folder_id=folder_id)
         elif action == 'del_tc':
             n = request.POST.get('tc_n', '')
             if n.isdigit():
                 api.delete_testcase(request, folder_id, int(n))
                 messages.success(request, f'测试点 {n} 已删除。')
-            return redirect('problem_edit', folder_id=folder_id)
+            return redirect('problem_testcases', folder_id=folder_id)
         elif action == 'reupload':
             zip_file = request.FILES.get('tc_zip')
             if zip_file:
                 api.reupload_testcases(request, folder_id, zip_file)
                 messages.success(request, '测试点已重新上传。')
-            return redirect('problem_edit', folder_id=folder_id)
+            return redirect('problem_testcases', folder_id=folder_id)
+
+    return render(request, 'oj/problems/testcases.html', {
+        'problem': problem,
+        'folder_id': folder_id,
+        'user': user,
+    })
 
         data = {
             "id": folder_id,
