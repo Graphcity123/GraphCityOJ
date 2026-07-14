@@ -21,7 +21,7 @@
     {% for s in submissions %}
     <tr>
         <td><code>{{ s.submission_id }}</code></td>
-        <td><a href="{% url 'problem_detail' s.problem_id %}">{{ s.problem_id }}</a></td>
+        <td>{% if s.problem_id %}<a href="{% url 'problem_detail' s.problem_id %}">{{ s.problem_id }}</a>{% else %}?{% endif %}</td>
         <td>
             {% if s.status == 'pending' %}
             <span class="badge badge-pending">评测中</span>
