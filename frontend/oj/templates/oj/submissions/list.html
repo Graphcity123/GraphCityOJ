@@ -8,6 +8,7 @@
     <input type="text" name="user_id" placeholder="用户ID" value="{{ request.GET.user_id }}">
     <input type="text" name="problem_id" placeholder="题目ID" value="{{ request.GET.problem_id }}">
     <button type="submit" class="btn">筛选</button>
+    {% if user.user_id %}<a href="?user_id={{ user.user_id }}" class="btn btn-primary">我的提交</a>{% endif %}
 </form>
 
 {% if not submissions %}
