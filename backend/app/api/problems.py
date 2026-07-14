@@ -5,7 +5,6 @@ import json
 import os
 import shutil
 import tempfile
-import uuid
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -60,8 +59,10 @@ async def upload_problem(
         raise HTTPException(status_code=400,
                             detail="testcases_zip must be a .zip file")
 
-    # Generate auto ID
-    folder_id = uuid.uuid4().hex[:12]
+    # Generate auto ID — numeric sequential
+    existing = (await get_problems()).keys()
+    nums = [int(k) for k in existing if k.isdigit()]
+    folder_id = str(max(nums) + 1) if nums else "1"
     prob_dir = settings.problems_dir / folder_id
     prob_dir.mkdir(parents=True, exist_ok=True)
 
