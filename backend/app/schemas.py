@@ -48,7 +48,6 @@ class ProblemCreate(BaseModel):
     testcases: list[TestCaseItem]
     hint: str = ""
     source: str = ""
-    tags: list[str] = []
     time_limit: float = 3.0
     memory_limit: int = 128
     author: str = ""
@@ -58,7 +57,6 @@ class ProblemCreate(BaseModel):
 class ProblemBrief(BaseModel):
     id: str
     title: str
-    tags: list[str] = []
     difficulty: str = ""
     author: str = ""
 

@@ -10,11 +10,6 @@
     <a href="{% url 'problem_detail' p.id %}" class="problem-card">
         <span class="prob-id">{{ p.id }}</span>
         <span class="prob-title">{{ p.title }}</span>
-        <span class="prob-tags">
-            {% for tag in p.tags %}
-            <span class="tag">{{ tag }}</span>
-            {% endfor %}
-        </span>
     </a>
     {% endfor %}
 </div>

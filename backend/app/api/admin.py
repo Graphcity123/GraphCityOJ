@@ -108,7 +108,6 @@ async def export_data(req: Request):
             "testcases": p.get("testcases", []),
             "hint": p.get("hint", ""),
             "source": p.get("source", ""),
-            "tags": p.get("tags", []),
             "time_limit": p.get("time_limit", 1.0),
             "memory_limit": p.get("memory_limit", 128),
             "author": p.get("author", ""),

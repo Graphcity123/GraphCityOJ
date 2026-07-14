@@ -92,7 +92,7 @@ async def upload_problem(
         "source": metadata.get("source", ""),
         "author": metadata.get("author", ""),
         "difficulty": metadata.get("difficulty", "easy"),
-        "tags": metadata.get("tags", []),
+        
         "samples": metadata.get("samples", []),
         "time_limit": float(metadata.get("time_limit", 1.0)),
         "memory_limit": int(metadata.get("memory_limit", 256)),
@@ -127,7 +127,6 @@ async def get_problem_detail(req: Request, problem_id: str):
         "testcases": p.get("testcases", []),
         "hint": p.get("hint", ""),
         "source": p.get("source", ""),
-        "tags": p.get("tags", []),
         "time_limit": p.get("time_limit", 3.0),
         "memory_limit": p.get("memory_limit", 128),
         "author": p.get("author", ""),
@@ -247,7 +246,7 @@ def _write_config(prob_dir: Path, data: dict) -> None:
     """Write config.json to the problem directory."""
     config = {k: data[k] for k in (
         "id", "title", "time_limit", "memory_limit",
-        "difficulty", "tags", "author", "testcase_count",
+        "difficulty", "author", "testcase_count",
     ) if k in data}
     (prob_dir / "config.json").write_text(
         json.dumps(config, indent=2, ensure_ascii=False),

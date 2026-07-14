@@ -46,7 +46,6 @@ class Problem(Base):
     source = Column(String(200), default="")
     author = Column(String(100), default="")
     difficulty = Column(String(20), default="easy")
-    tags = Column(JSON, default=list)
     samples = Column(JSON, default=list)
     time_limit = Column(Float, default=1.0)
     memory_limit = Column(Integer, default=256)
