@@ -27,18 +27,55 @@ async def lifespan(app: FastAPI):
         from app.api.admin import _register_default_languages as _rdl
         await _rdl()
 
-    # Ensure default problem exists
-    from app.storage import get_problem, save_problem
-    if await get_problem("1") is None:
-        await save_problem("1", {
-            "id": "1", "title": "A+B Problem",
-            "description": "", "input_description": "",
-            "output_description": "", "constraints": "",
-            "samples": [{"input": "1 2", "output": "3"}],
-            "testcases": [{"input": "1 2", "output": "3"}],
-            "testcase_count": 1, "time_limit": 1.0, "memory_limit": 256,
-            "difficulty": "beginner",
-        })
+    # Sync problems from disk to DB
+    from app.storage import get_problem, get_problems, save_problem
+    from app.config import settings
+    if settings.problems_dir.exists():
+        for folder in sorted(settings.problems_dir.iterdir()):
+            if not folder.is_dir():
+                continue
+            pid = folder.name
+            if not pid.isdigit():
+                continue
+            if await get_problem(pid) is not None:
+                continue
+            # Discover testcase count and config from disk
+            tc_count = len([f for f in folder.iterdir()
+                           if f.name.endswith(".in")])
+            cfg_file = folder / "config.json"
+            title = pid
+            time_limit = 1.0
+            memory_limit = 256
+            difficulty = "easy"
+            if cfg_file.exists():
+                import json
+                try:
+                    cfg = json.loads(cfg_file.read_text())
+                    title = cfg.get("title", pid)
+                    time_limit = cfg.get("time_limit", 1.0)
+                    memory_limit = cfg.get("memory_limit", 256)
+                    difficulty = cfg.get("difficulty", "easy")
+                except Exception:
+                    pass
+            samples = []
+            if tc_count > 0:
+                in1 = folder / "1.in"
+                out1 = folder / "1.out"
+                if in1.exists() and out1.exists():
+                    samples = [{
+                        "input": in1.read_text().strip(),
+                        "output": out1.read_text().strip(),
+                    }]
+            await save_problem(pid, {
+                "id": pid, "title": title,
+                "description": "", "input_description": "",
+                "output_description": "", "constraints": "",
+                "samples": samples,
+                "testcases": [],
+                "testcase_count": tc_count,
+                "time_limit": time_limit, "memory_limit": memory_limit,
+                "difficulty": difficulty,
+            })
     yield
 
 
