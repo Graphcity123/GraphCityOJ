@@ -169,10 +169,14 @@ async def remove_problem(req: Request, problem_id: str):
 
 
 @router.post("/{problem_id}/testcases")
-async def add_testcase(req: Request, problem_id: str,
-                       test_input: str = Form(...),
-                       test_output: str = Form(...)):
-    """Add a single test case to a problem (admin only)."""
+async def add_testcase(
+    req: Request, problem_id: str,
+    test_input: str = Form(""),
+    test_output: str = Form(""),
+    in_file: UploadFile | None = File(None),
+    out_file: UploadFile | None = File(None),
+):
+    """Add a test case via text or file upload (admin only)."""
     require_admin(req)
     p = await get_problem(problem_id)
     if p is None:
@@ -180,6 +184,15 @@ async def add_testcase(req: Request, problem_id: str,
 
     prob_dir = settings.problems_dir / problem_id
     prob_dir.mkdir(parents=True, exist_ok=True)
+
+    # Get input/output from files or text
+    if in_file and in_file.filename:
+        test_input = (await in_file.read()).decode("utf-8", errors="replace")
+    if out_file and out_file.filename:
+        test_output = (await out_file.read()).decode("utf-8", errors="replace")
+
+    if not test_input.strip():
+        raise HTTPException(status_code=400, detail="Input is required")
 
     # Find next available number
     existing = sorted([int(f.stem) for f in prob_dir.iterdir()

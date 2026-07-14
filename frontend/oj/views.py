@@ -260,9 +260,15 @@ def problem_testcases(request, folder_id: str):
         if action == 'add_tc':
             inp = request.POST.get('tc_input', '')
             out = request.POST.get('tc_output', '')
-            if inp and out:
-                api.add_testcase(request, folder_id, inp, out)
+            in_file = request.FILES.get('in_file')
+            out_file = request.FILES.get('out_file')
+            if (inp or in_file) and (out or out_file):
+                api.add_testcase(request, folder_id,
+                                 test_input=inp, test_output=out,
+                                 in_file=in_file, out_file=out_file)
                 messages.success(request, '测试点已添加。')
+            else:
+                messages.error(request, '请提供输入和输出。')
             return redirect('problem_testcases', folder_id=folder_id)
         elif action == 'del_tc':
             n = request.POST.get('tc_n', '')

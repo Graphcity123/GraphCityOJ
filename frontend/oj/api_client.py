@@ -222,10 +222,21 @@ def update_problem(request: HttpRequest, problem_id: str,
 
 
 def add_testcase(request: HttpRequest, problem_id: str,
-                 test_input: str, test_output: str) -> dict[str, Any] | None:
+                 test_input: str = "", test_output: str = "",
+                 in_file=None, out_file=None) -> dict[str, Any] | None:
+    """Add a test case via text or file upload."""
+    data = {}
+    files = {}
+    if in_file is not None:
+        files['in_file'] = (in_file.name, in_file.read(), 'text/plain')
+    else:
+        data['test_input'] = test_input
+    if out_file is not None:
+        files['out_file'] = (out_file.name, out_file.read(), 'text/plain')
+    else:
+        data['test_output'] = test_output
     return api_post(request, f'/api/problems/{problem_id}/testcases',
-                    data={'test_input': test_input,
-                          'test_output': test_output})
+                    data=data, files=files if files else None)
 
 
 def delete_testcase(request: HttpRequest, problem_id: str,

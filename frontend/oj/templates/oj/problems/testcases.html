@@ -31,13 +31,23 @@
 </div>
 {% endif %}
 
-<form method="post" style="max-width:600px;margin:0 auto">
+<form method="post" enctype="multipart/form-data" style="max-width:600px;margin:0 auto">
     {% csrf_token %}
     <label>新增测试点</label>
-    <textarea name="tc_input" rows="3" placeholder="输入数据"
-              style="width:100%;font-family:'JetBrains Mono',monospace;padding:8px;border:1px solid var(--border);background:var(--bg);margin-bottom:6px"></textarea>
-    <textarea name="tc_output" rows="3" placeholder="期望输出"
-              style="width:100%;font-family:'JetBrains Mono',monospace;padding:8px;border:1px solid var(--border);background:var(--bg)"></textarea>
-    <button type="submit" name="action" value="add_tc" class="btn" style="margin-top:8px">添加</button>
+    <div style="display:flex;gap:12px">
+        <div style="flex:1">
+            <div style="font-size:.8rem;color:var(--text-secondary);margin-bottom:2px">输入 (.in)</div>
+            <textarea name="tc_input" rows="4" placeholder="或直接粘贴输入数据"
+                      style="width:100%;font-family:'JetBrains Mono',monospace;padding:10px;border:1px solid var(--border);background:var(--bg);font-size:13px"></textarea>
+            <input type="file" name="in_file" accept=".in" style="margin-top:4px;font-size:.8rem">
+        </div>
+        <div style="flex:1">
+            <div style="font-size:.8rem;color:var(--text-secondary);margin-bottom:2px">输出 (.out / .ans)</div>
+            <textarea name="tc_output" rows="4" placeholder="或直接粘贴期望输出"
+                      style="width:100%;font-family:'JetBrains Mono',monospace;padding:10px;border:1px solid var(--border);background:var(--bg);font-size:13px"></textarea>
+            <input type="file" name="out_file" accept=".out,.ans" style="margin-top:4px;font-size:.8rem">
+        </div>
+    </div>
+    <button type="submit" name="action" value="add_tc" class="btn btn-primary" style="margin-top:10px;width:100%">添加测试点</button>
 </form>
 {% endblock %}
