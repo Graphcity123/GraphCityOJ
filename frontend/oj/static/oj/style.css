@@ -348,6 +348,14 @@ pre:hover .copy-btn { opacity: 1; }
 pre .copy-btn { position: absolute; top: 4px; right: 4px; opacity: 0; transition: opacity .2s; }
 pre:hover .copy-btn { opacity: 1; }
 
+input[type=file]::file-selector-button {
+    font-family: 'HarmonyOS Sans SC', -apple-system, sans-serif;
+    font-size: .85rem; padding: 6px 14px; margin-right: 10px;
+    border: 1px solid var(--border); background: var(--bg);
+    color: var(--text); cursor: pointer;
+}
+input[type=file]::file-selector-button:hover { border-color: var(--primary); color: var(--primary); }
+
 /* Button font consistency */
 button, input[type=submit], .btn {
     font-family: 'HarmonyOS Sans SC', -apple-system, sans-serif;
