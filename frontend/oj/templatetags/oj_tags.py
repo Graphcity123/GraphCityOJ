@@ -61,3 +61,14 @@ def highlight_code(code: str, language: str = "python") -> str:
     formatter = HtmlFormatter(cssclass="highlight", style="monokai")
     result = highlight(code, lexer, formatter)
     return mark_safe(result)
+
+
+@register.filter(name='first_fail')
+def first_fail(details: list) -> str:
+    """Return the first non-AC result from details, or empty string."""
+    if not details:
+        return ""
+    for tc in details:
+        if isinstance(tc, dict) and tc.get("result", "AC") != "AC":
+            return tc["result"]
+    return ""

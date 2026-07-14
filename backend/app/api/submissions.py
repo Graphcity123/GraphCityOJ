@@ -181,6 +181,12 @@ async def list_submissions(
         if s.get("status") not in ("error", "pending"):
             brief["score"] = s.get("score", 0)
             brief["counts"] = s.get("counts", 0)
+            # Find first non-AC result for status display
+            results = s.get("results", [])
+            for r in results:
+                if isinstance(r, dict) and r.get("result", "AC") != "AC":
+                    brief["first_fail"] = r["result"]
+                    break
         items.append(brief)
 
     return ApiResponse(

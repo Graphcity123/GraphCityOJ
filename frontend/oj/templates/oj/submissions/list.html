@@ -29,7 +29,7 @@
                 {% if s.score == s.counts and s.counts > 0 %}
                 <span class="badge badge-ac">Accepted</span>
                 {% elif s.score > 0 %}
-                <span class="badge badge-wa">Wrong Answer</span>
+                <span class="badge badge-wa">{{ s.first_fail|default:'WA' }}</span>
                 {% else %}
                 <span class="badge badge-ce">Failed</span>
                 {% endif %}
