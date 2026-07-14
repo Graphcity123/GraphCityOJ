@@ -72,3 +72,15 @@ def first_fail(details: list) -> str:
         if isinstance(tc, dict) and tc.get("result", "AC") != "AC":
             return tc["result"]
     return ""
+
+
+@register.filter(name='banner_class')
+def banner_class(details: list) -> str:
+    """Return CSS class for the result banner based on first failure."""
+    fail = first_fail(details)
+    if not fail:
+        return "result-ac"
+    suffix = fail.lower()
+    if suffix in ("tle", "mle", "re", "ce"):
+        return f"result-partial-{suffix}"
+    return "result-partial"
