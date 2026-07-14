@@ -9,6 +9,7 @@
     {% for p in problems %}
     <a href="{% url 'problem_detail' p.id %}" class="problem-card">
         <span class="prob-id">{{ p.id }}</span>
+        <span class="prob-divider"></span>
         <span class="prob-title">{{ p.title }}</span>
     </a>
     {% endfor %}
