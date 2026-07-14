@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import shutil
 import tempfile
 import zipfile
@@ -190,55 +191,63 @@ def _parse_md_frontmatter(text: str) -> dict:
 
 def _extract_and_validate_testcases(zip_bytes: bytes,
                                     prob_dir: Path) -> int:
-    """Extract testcases.zip, validate N.in/N.out pairs, return count."""
+    """Extract testcases.zip, auto-detect N.in/N.out pairs regardless of prefix."""
     temp_dir = Path(tempfile.mkdtemp())
     try:
         with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
             zf.extractall(temp_dir)
 
         files = os.listdir(temp_dir)
-        in_files = sorted([f for f in files if f.endswith(".in")])
-        out_files = sorted([f for f in files if f.endswith(".out")])
+        in_files = [f for f in files if f.endswith(".in")]
+        out_files = [f for f in files if f.endswith(".out")]
 
         if not in_files:
             raise HTTPException(status_code=400,
                                 detail="ZIP must contain at least one .in file")
 
-        # Validate pairing
-        in_nums = set()
+        # Extract number from filename regardless of prefix
+        # e.g. "test1.in"→1, "data01.in"→1, "1.in"→1, "case_3.in"→3
+        def _extract_num(filename: str) -> int | None:
+            match = re.search(r"(\d+)", filename)
+            return int(match.group(1)) if match else None
+
+        in_pairs: dict[int, str] = {}
         for f in in_files:
-            try:
-                n = int(f[:-3])
-                in_nums.add(n)
-            except ValueError:
+            n = _extract_num(f)
+            if n is None:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid test case name: {f}, expected N.in")
+                    detail=f"Cannot extract number from: {f}")
+            if n in in_pairs:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Duplicate test case number {n}: {f}")
+            in_pairs[n] = f
 
-        out_nums = set()
+        out_pairs: dict[int, str] = {}
         for f in out_files:
-            try:
-                n = int(f[:-4])
-                out_nums.add(n)
-            except ValueError:
+            n = _extract_num(f)
+            if n is None:
                 raise HTTPException(
                     status_code=400,
-                    detail=f"Invalid test case name: {f}, expected N.out")
+                    detail=f"Cannot extract number from: {f}")
+            out_pairs[n] = f
 
-        if in_nums != out_nums:
+        if set(in_pairs.keys()) != set(out_pairs.keys()):
             raise HTTPException(
                 status_code=400,
-                detail=f"Mismatched test cases: .in has {sorted(in_nums)}, "
-                       f".out has {sorted(out_nums)}")
+                detail=f"Mismatched test cases: "
+                       f".in numbers {sorted(in_pairs.keys())}, "
+                       f".out numbers {sorted(out_pairs.keys())}")
 
-        # Move files to problem directory
-        for n in sorted(in_nums):
-            src_in = temp_dir / f"{n}.in"
-            src_out = temp_dir / f"{n}.out"
-            shutil.move(str(src_in), str(prob_dir / f"{n}.in"))
-            shutil.move(str(src_out), str(prob_dir / f"{n}.out"))
+        # Rename to canonical N.in / N.out
+        for n in sorted(in_pairs.keys()):
+            shutil.move(str(temp_dir / in_pairs[n]),
+                        str(prob_dir / f"{n}.in"))
+            shutil.move(str(temp_dir / out_pairs[n]),
+                        str(prob_dir / f"{n}.out"))
 
-        return len(in_nums)
+        return len(in_pairs)
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
