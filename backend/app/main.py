@@ -26,6 +26,19 @@ async def lifespan(app: FastAPI):
     if not await get_languages():
         from app.api.admin import _register_default_languages as _rdl
         await _rdl()
+
+    # Ensure default problem exists
+    from app.storage import get_problem, save_problem
+    if await get_problem("1") is None:
+        await save_problem("1", {
+            "id": "1", "title": "A+B Problem",
+            "description": "", "input_description": "",
+            "output_description": "", "constraints": "",
+            "samples": [{"input": "1 2", "output": "3"}],
+            "testcases": [{"input": "1 2", "output": "3"}],
+            "testcase_count": 1, "time_limit": 1.0, "memory_limit": 256,
+            "difficulty": "beginner",
+        })
     yield
 
 
