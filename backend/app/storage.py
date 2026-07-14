@@ -211,8 +211,8 @@ async def get_audit_logs() -> list[dict[str, Any]]:
 # ── Dict ↔ ORM ────────────────────────────────────────────────
 
 def _problem_to_dict(p: ProblemModel) -> dict[str, Any]:
-    # Prefer disk file for description if it exists
-    desc = _load_md_from_disk(p.id) or p.description
+    # Use DB description if present, otherwise fall back to disk
+    desc = p.description or _load_md_from_disk(p.id) or ""
     return {
         "id": p.id, "title": p.title, "description": desc,
         "input_description": p.input_description,
