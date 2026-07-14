@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import os
-import resource, signal
+import resource
+import signal
+import time
 from pathlib import Path
+
+import psutil
 
 from app.storage import get_languages, get_problem
 from app.schemas import EvalStatus
@@ -125,7 +129,7 @@ async def _run_testcase(
     memory_limit_mb: int,
     tc_id: int,
 ) -> dict:
-    """Run a single test case."""
+    """Run a single test case with time and memory measurement."""
     cmd = run_cmd.format(src=src_path, exe=exe_path)
 
     try:
@@ -138,28 +142,66 @@ async def _run_testcase(
             preexec_fn=_set_limits(memory_limit_mb),
         )
 
+        # Memory monitor: poll RSS every 50ms
+        peak_rss: int = 0
+        mem_exceeded: bool = False
+        mem_stop: bool = False
+
+        async def _poll_memory():
+            nonlocal peak_rss, mem_exceeded, mem_stop
+            try:
+                p = psutil.Process(proc.pid)
+                while not mem_stop:
+                    try:
+                        rss = p.memory_info().rss
+                        if rss > peak_rss:
+                            peak_rss = rss
+                        if rss > memory_limit_mb * 1024 * 1024:
+                            mem_exceeded = True
+                            proc.kill()
+                            return
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        return
+                    await asyncio.sleep(0.05)
+            except (psutil.NoSuchProcess, Exception):
+                pass
+
+        mem_task = asyncio.create_task(_poll_memory())
+        start_time = time.perf_counter()
+
         try:
             stdout, stderr = await asyncio.wait_for(
                 proc.communicate(input=test_input.encode()),
                 timeout=time_limit,
             )
         except asyncio.TimeoutError:
+            elapsed = round(time.perf_counter() - start_time, 2)
             try:
                 os.kill(proc.pid, signal.SIGKILL)
                 await proc.wait()
             except ProcessLookupError:
                 pass
-            return {"id": tc_id, "result": "TLE", "time": round(time_limit, 2), "memory": 0}
+            mem_stop = True
+            await mem_task
+            mem_mb = round(peak_rss / (1024 * 1024), 2)
+            return {"id": tc_id, "result": "TLE", "time": elapsed, "memory": int(mem_mb)}
+
+        elapsed = round(time.perf_counter() - start_time, 2)
+        mem_stop = True
+        await mem_task
+        mem_mb = round(peak_rss / (1024 * 1024), 2)
+
+        # Check memory exceeded first
+        if mem_exceeded:
+            return {"id": tc_id, "result": "MLE", "time": elapsed, "memory": int(mem_mb)}
 
         output = stdout.decode("utf-8", errors="replace").strip()
         expected = expected_output.strip()
-        elapsed = 0.0
-        mem_used = 0
 
         if _compare_output(output, expected):
-            return {"id": tc_id, "result": "AC", "time": elapsed, "memory": mem_used}
+            return {"id": tc_id, "result": "AC", "time": elapsed, "memory": int(mem_mb)}
         else:
-            return {"id": tc_id, "result": "WA", "time": elapsed, "memory": mem_used}
+            return {"id": tc_id, "result": "WA", "time": elapsed, "memory": int(mem_mb)}
 
     except asyncio.TimeoutError:
         return {"id": tc_id, "result": "TLE", "time": round(time_limit, 2), "memory": 0}
