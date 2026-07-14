@@ -210,7 +210,7 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
 /* Result page */
 .result-banner { padding: 16px 20px; font-size: 1.1rem; font-weight: 600; margin: 12px 0; border-left: 6px solid; }
 .result-ac { background: #dcfce7; color: #166534; border-color: var(--success); }
-.result-partial { background: #fef2f2; color: #991b1b; border-color: var(--danger); }
+.result-partial, .result-partial-wa { background: #fef2f2; color: #991b1b; border-color: var(--danger); }
 .result-partial-tle, .result-partial-mle { background: #eff6ff; color: #1e40af; border-color: #3b82f6; }
 .result-partial-re { background: #f5f3ff; color: #6b21a8; border-color: #7c3aed; }
 .result-partial-ce { background: #fefce8; color: #854d0e; border-color: #eab308; }
