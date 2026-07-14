@@ -20,7 +20,7 @@ urlpatterns = [
 
     # Submissions
     path('submissions/', views.submission_list, name='submission_list'),
-    path('submission/<str:submission_id>/', views.submission_result,
+    path('submission/<str:submission_id>/', views.submission_log,
          name='submission_result'),
     path('submission/<str:submission_id>/log/', views.submission_log,
          name='submission_log'),

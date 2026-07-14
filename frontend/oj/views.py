@@ -111,31 +111,21 @@ def submission_create(request, folder_id: str):
 
 
 @login_required
-def submission_result(request, submission_id: str):
-    """Show submission result with polling."""
-    user = request.session.get('user', {})
-    log_data = api.get_submission_log(request, submission_id)
-    sub = api.get_submission(request, submission_id) or {}
-    return render(request, 'oj/submissions/result.html', {
-        'submission_id': submission_id,
-        'log_data': log_data,
-        'problem_id': sub.get('problem_id', ''),
-        'user': user,
-    })
-
-
-@login_required
 def submission_log(request, submission_id: str):
-    """Detailed judge log with code display."""
+    """Judge result page (owner sees all, others see only score)."""
     user = request.session.get('user', {})
     log_data = api.get_submission_log(request, submission_id)
     sub = api.get_submission(request, submission_id) or {}
+    is_owner = sub.get('user_id') == user.get('user_id')
+    is_admin = user.get('role') == 'admin'
+    can_view_full = is_owner or is_admin
     return render(request, 'oj/submissions/log.html', {
         'submission_id': submission_id,
         'log_data': log_data,
         'problem_id': sub.get('problem_id', ''),
-        'code': sub.get('code', ''),
+        'code': sub.get('code', '') if can_view_full else '',
         'language': sub.get('language', 'python'),
+        'can_view_full': can_view_full,
         'user': user,
     })
 
@@ -174,7 +164,7 @@ def submission_rejudge(request, submission_id: str):
 
     api.rejudge(request, submission_id)
     messages.success(request, f'重新评测已启动： {submission_id}.')
-    return redirect('submission_result', submission_id=submission_id)
+    return redirect('submission_log', submission_id=submission_id)
 
 
 # ── Problem Upload ─────────────────────────────────────────────

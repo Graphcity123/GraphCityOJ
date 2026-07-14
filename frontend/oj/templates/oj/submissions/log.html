@@ -1,9 +1,9 @@
 {% extends 'oj/base.html' %}
 {% load oj_tags %}
-{% block title %}评测日志 {{ submission_id }} — GCOJ{% endblock %}
+{% block title %}评测结果 {{ submission_id }} — GCOJ{% endblock %}
 
 {% block content %}
-<h2>评测日志</h2>
+<h2>评测结果</h2>
 <div class="sub-meta-row">
     <span>提交编号：<strong>{{ submission_id }}</strong></span>
     {% if problem_id %}<a href="{% url 'problem_detail' problem_id %}" class="btn btn-sm">← 返回原题</a>{% endif %}
@@ -25,24 +25,27 @@
     <div class="result-banner result-fail">❌ Failed — {{ score }} / {{ counts }}</div>
     {% endif %}
     {% endwith %}
-    <table class="result-table">
-        <thead><tr><th>#</th><th>结果</th><th>用时</th><th>内存</th></tr></thead>
-        <tbody>
+
+    {% if can_view_full %}
+    <div class="tc-grid">
         {% for tc in log_data.details %}
-        <tr class="tc-{{ tc.result|lower }}">
-            <td>{{ tc.id }}</td>
-            <td><strong class="badge badge-{{ tc.result|lower }}">{{ tc.result }}</strong></td>
-            <td>{% if tc.time == 0 %}—{% elif tc.time < 1.0 %}{% widthratio tc.time 1 1000 %}ms{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</td>
-            <td>{{ tc.memory }} MB</td>
-        </tr>
+        <div class="tc-card tc-{{ tc.result|lower }}">
+            <div class="tc-num">#{{ tc.id }}</div>
+            <div class="tc-result">
+                <strong class="badge badge-{{ tc.result|lower }}">{{ tc.result }}</strong>
+            </div>
+            <div class="tc-stats">
+                <span>{% if tc.time == 0 %}—{% elif tc.time < 1.0 %}{% widthratio tc.time 1 1000 %}ms{% else %}{{ tc.time|floatformat:2 }}s{% endif %}</span>
+                <span>{{ tc.memory }} MB</span>
+            </div>
+        </div>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
+    {% endif %}
 {% endif %}
 
-{% if code %}
+{% if can_view_full and code %}
 <h3>提交代码</h3>
 {{ code|highlight_code:language }}
 {% endif %}
-
 {% endblock %}
