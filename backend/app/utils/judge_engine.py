@@ -137,12 +137,11 @@ async def _run_testcase(
     timeout_sec = int(time_limit) + 2  # small cushion
 
     # Wrap in firejail for cgroup-based memory isolation
-    # firejail --timeout format: HH:MM:SS
     hh = timeout_sec // 3600
     mm = (timeout_sec % 3600) // 60
     ss = timeout_sec % 60
     jail_cmd = (
-        f"firejail --quiet --noprofile --net=none "
+        f"firejail --quiet --noprofile "
         f"--rlimit-as={mem_bytes} "
         f"--timeout={hh:02d}:{mm:02d}:{ss:02d} "
         f"-- {cmd}"
