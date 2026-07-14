@@ -113,7 +113,8 @@ h3 { font-size: 1.15rem; margin: 12px 0 8px; }
     min-width: 48px; text-align: center;
 }
 .prob-divider {
-    width: 1px; height: 28px; background: var(--border); margin: 0 20px; flex-shrink: 0;
+    width: 2px; height: 28px; background: var(--accent); margin: 0 20px; flex-shrink: 0;
+    opacity: 0.6;
 }
 .prob-title { font-weight: 600; flex: 1; color: var(--text); }
 .tag { font-family: inherit; background: var(--bg); color: var(--text-secondary); padding: 2px 8px; font-size: .75rem; border: 1px solid var(--border); }
