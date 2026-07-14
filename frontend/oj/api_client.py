@@ -17,16 +17,21 @@ from django.http import HttpRequest
 def _get_session(request: HttpRequest) -> requests.Session:
     """Get or create a requests.Session for the current Django session."""
     session = requests.Session()
-    # Restore cookies from Django session if any
+    session.cookies.clear()
     cookies = request.session.get('_api_cookies', {})
     for name, value in cookies.items():
-        session.cookies.set(name, value)
+        session.cookies.set(name, value, domain='', path='/')
     return session
 
 
 def _save_cookies(request: HttpRequest, session: requests.Session) -> None:
     """Persist cookies from the API session into Django's session."""
-    request.session['_api_cookies'] = dict(session.cookies)
+    cookies = dict(session.cookies)
+    # Deduplicate: keep only the last value for each cookie name
+    deduped = {}
+    for key in sorted(cookies.keys()):
+        deduped[key] = cookies[key]
+    request.session['_api_cookies'] = deduped
     request.session.modified = True
 
 

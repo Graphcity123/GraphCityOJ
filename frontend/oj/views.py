@@ -265,7 +265,9 @@ def problem_delete(request, folder_id: str):
 def admin_reset(request):
     """Reset the system."""
     if request.method == 'POST':
+        request.session.pop('_api_cookies', None)
         api.reset_system(request)
+        request.session.pop('_api_cookies', None)
         user_data = api.login(request, 'admin', 'admintestpassword')
         if user_data:
             request.session['user'] = user_data
