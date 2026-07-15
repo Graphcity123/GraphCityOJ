@@ -23,7 +23,7 @@
     <tr class="clickable-row" onclick="location.href='{% url 'submission_log' s.submission_id %}'" style="cursor:pointer">
         <td><strong>{{ s.submission_id }}</strong></td>
         <td>{% if s.problem_id %}<a href="{% url 'problem_detail' s.problem_id %}" onclick="event.stopPropagation()">{{ s.problem_title|default:s.problem_id }}</a>{% else %}?{% endif %}</td>
-        <td><a href="{% url 'user_profile' s.user_id %}" onclick="event.stopPropagation()">{{ s.user_id }}</a></td>
+        <td>{% if s.user_id %}<a href="{% url 'user_profile' s.user_id %}" onclick="event.stopPropagation()">{{ s.user_id }}</a>{% else %}—{% endif %}</td>
         <td>
             {% if s.status == 'pending' %}
             <span class="badge badge-pending">评测中</span>
