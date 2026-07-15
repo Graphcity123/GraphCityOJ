@@ -1,201 +1,99 @@
-# OJ System
+# GraphCity OJ — 在线评测系统
 
-实验二：在线评测系统 —— 构建一个小型但功能完整的 Online Judge 系统。
+前后端分离的 Online Judge，支持 C++ 代码评测，firejail 沙箱隔离。
 
-## 技术栈
+## 架构
 
-- **Web 框架**: FastAPI (async/await)
-- **认证**: Starlette SessionMiddleware
-- **数据存储**: 内存字典（现阶段），计划迁移至 SQLite
-- **密码**: SHA-256 加盐哈希
-- **评测引擎**: asyncio + subprocess，支持资源限制
-- **前端**: Streamlit（Python）
+```
+浏览器 → Django 前端 (:8500) → HTTP → FastAPI 后端 (:8000) → SQLite + 题目磁盘文件
+                                              │
+                                              ├── firejail 沙箱隔离
+                                              ├── 并发评测 (4 线程)
+                                              └── cgroup 内存精确统计
+```
+
+| 组件 | 技术栈 |
+|------|--------|
+| 后端 | FastAPI + async SQLAlchemy + aiosqlite |
+| 前端 | Django 5 + 模板渲染 + requests |
+| 沙箱 | firejail（cgroup 内存限制 + 网络隔离） |
+| 评测 | 并发 asyncio.gather，4 线程并行 |
+| 存储 | SQLite（元数据） + 磁盘文件（题目 / 测试点） |
 
 ## 快速开始
 
-`ash
-cd oj-system
+### 依赖
 
-# 安装依赖
+```bash
+# WSL / Linux
+sudo apt install firejail g++ python3-pip
+```
+
+### 后端
+
+```bash
+cd backend
 pip install -e .
+uvicorn app.main:app --reload --port 8000 --reload-exclude 'work/*'
+```
 
-# 启动服务
-uvicorn app.main:app --reload --port 8000 --reload-exclude 'work/*' --reload-exclude 'work/**/*'
-`
+### 前端
 
-启动后访问 http://localhost:8000/health 验证服务。
+```bash
+cd frontend
+pip install django requests markdown pygments
+python3 manage.py runserver 8500
+```
 
-# 启动前端（另一个终端）
-streamlit run frontend/app.py --server.port 8501
+- 后端 API：http://localhost:8000/health
+- 前端界面：http://localhost:8500
 
-前端访问 http://localhost:8501。
+## 功能
 
-## 实现进度
+- **用户系统**：注册 / 登录 / 角色管理（admin / user / banned）
+- **题目管理**：Markdown 题面渲染、文件上传创建、编辑元数据、增删测试点
+- **代码评测**：C++ 提交，firejail 沙箱隔离，并发 4 线程评测
+- **真实时间/内存测量**：`/usr/bin/time` 在沙箱内部测量，%e（秒）+ %M（KB max RSS）
+- **评分模型**：每题总分 100，测试点均分，整数评分
+- **提交结果页**：独立结果页面，自动轮询刷新，实时展示评测进度
+- **结果展示**：卡片网格（每行 8 个正方形）、颜色横幅、结果代码直接显示
+- **时间显示**：< 1s 显示毫秒，否则保留 2 位小数秒
+- **提交记录**：全部可见、筛选、整行点击跳转详情
+- **管理员**：系统重置、数据导入导出、用户管理、题目上传编辑删除
+- **频率限制**：普通用户 20 秒内最多 5 次提交，管理员无限制
+- **Session 管理**：前后端分离 Cookie 透传，支持多用户并发
+- **主题系统**：4 套配色方案，CSS 自定义属性切换
+- **字体**：HarmonyOS Sans SC（正文）+ JetBrains Mono（代码）
+- **Markdown**：python-markdown + Pygments 代码高亮 + MathJax LaTeX
+- **直角扁平设计**：参考 graphcity_blog 视觉风格
 
-| Step | 状态 | 说明 |
+## 题目存储格式
+
+```
+problems/
+├── 1/                  # A+B Problem
+│   ├── problem.md      # 题面（YAML front-matter + Markdown）
+│   ├── config.json     # 元数据（时间/内存/难度）
+│   ├── 1.in / 1.out    # 测试点
+│   └── ...
+├── 2/                  # 下一个题目
+└── ...
+```
+
+## 评测结果状态
+
+| 状态 | 含义 | 颜色 |
 |------|------|------|
-| Step1：题目管理 | ✅ 已完成 | 题目增删查改，分页列表，管理员删除 |
-| Step2：题目评测 | ✅ 已完成 | Python/C++ 评测，动态注册语言，时间/内存限制 |
-| Step3：评测列表 | ✅ 已完成 | 评测历史、详情、重新评测 |
-| Step4：用户管理 | ✅ 已完成 | 注册、登录、角色管理 |
-| Step5：日志与权限 | ✅ 已完成 | 日志查询、审计、测例公开控制 |
-| Step6：持久化存储 | ✅ 已完成 | SQLite 迁移、数据导出/导入 |
-| Adv2：前端交互 | ✅ 已完成 | Streamlit 前端：登录、提交、评测结果查询 |
+| AC | Accepted | 绿 |
+| WA | Wrong Answer | 红 |
+| TLE | Time Limit Exceeded | 蓝 |
+| MLE | Memory Limit Exceeded | 蓝 |
+| RE | Runtime Error | 紫 |
+| CE | Compile Error | 黄 |
 
-## 项目结构
+## 测试
 
-`
-oj-system/
-├── app/
-│   ├── main.py              # FastAPI 入口，中间件与路由注册
-│   ├── config.py            # pydantic-settings 配置
-│   ├── storage.py           # 内存存储层（dict 抽象，预留 SQLite 迁移）
-│   ├── schemas.py           # 全部 Pydantic 数据模型与枚举
-│   ├── api/
-│   │   ├── auth.py          # Step4: 登录/登出
-│   │   ├── problems.py      # Step1: 题目 CRUD
-│   │   ├── judge.py         # Step2: 语言管理
-│   │   ├── submissions.py   # Step2+3: 评测提交/列表/详情/重评
-│   │   ├── users.py         # Step4: 注册/信息/角色变更/创建管理员
-│   │   ├── logs.py          # Step5: 日志查询/权限/审计
-│   │   └── admin.py         # Step6: 重置/导出/导入
-│   ├── utils/
-│   │   ├── auth.py          # Session 认证与权限校验
-│   │   ├── exceptions.py    # HTTP 异常类
-│   │   ├── judge_engine.py  # 异步评测引擎（subprocess）
-│   │   └── rate_limiter.py  # 请求频率限制（429）
-│   ├── models/              # SQLAlchemy ORM 模型
-│   │   ├── user.py
-│   │   ├── problem.py
-│   │   ├── submission.py
-│   │   └── log.py
-│   ├── db/                  # 数据库引擎与迁移
-│   │   ├── database.py
-│   │   └── models.py
-│   ├── core/                # 核心逻辑（预留）
-│   └── services/            # 业务服务（预留）
-├── frontend/               # Streamlit 前端
-│   ├── app.py              # 主应用
-│   └── api.py              # API 客户端
-├── problems/                # 题目配置目录（TOML/JSON）
-│   └── example/             # 示例题目：A+B Problem
-├── tests/                   # pytest 测试用例
-├── test_api.http            # VS Code REST Client 测试文件
-├── pyproject.toml           # 项目配置与依赖
-└── README.md
-`
-
-## API 接口总览
-
-接口详情以 [api.md](https://keg-course.github.io/python-docs/oj/api/) 为准，以下为快速参考。
-
-### Step1 题目管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/problems/ | 题目列表（分页） |
-| POST | /api/problems/ | 创建题目 |
-| GET | /api/problems/{id} | 题目详情 |
-| DELETE | /api/problems/{id} | 删除题目（管理员） |
-
-### Step2 评测控制
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/languages/ | 支持的语言列表 |
-| POST | /api/languages/ | 注册新语言 |
-
-### Step3 评测列表
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/submissions/ | 提交代码评测（异步，返回 pending） |
-| GET | /api/submissions/ | 评测列表（分页、筛选，需提供 problem_id 或 user_id） |
-| GET | /api/submissions/{id} | 评测详情（本人/管理员） |
-| PUT | /api/submissions/{id}/rejudge | 重新评测（管理员） |
-| GET | /api/submissions/{id}/log | 查询评测日志 |
-
-### Step4 用户管理
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/users/ | 用户注册 |
-| POST | /api/auth/login | 用户登录 |
-| POST | /api/auth/logout | 用户登出 |
-| GET | /api/users/ | 用户列表（管理员） |
-| GET | /api/users/{user_id} | 用户信息（本人/管理员） |
-| PUT | /api/users/{user_id}/role | 修改角色（管理员） |
-| POST | /api/users/admin | 创建管理员账户 |
-
-### Step5 日志与权限
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| PUT | /api/problems/{problem_id}/log_visibility | 配置测例公开状态 |
-| GET | /api/logs/access/ | 审计日志（管理员） |
-
-### Step6 数据持久化
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/reset/ | 系统重置（管理员） |
-| GET | /api/export/ | 数据导出（管理员） |
-| POST | /api/import/ | 数据导入（管理员） |
-
-## 默认管理员账号
-
-- 用户名：dmin
-- 密码：dmintestpassword
-- 执行 POST /api/reset/ 后自动创建，也可通过 POST /api/users/admin 新建管理员
-
-## 注意事项
-
-- 评测提交通过 BackgroundTasks 异步执行，返回 {"status": "pending"}，随后可通过 GET /api/submissions/{id} 查询结果
-- 同一用户每分钟最多提交 3 次评测（超限返回 HTTP 429）
-- 所有错误响应统一格式：{"code": <http状态码>, "msg": "<错误描述>", "data": null}
-- 异常处理顺序：401 > 403 > 400 > 429 > 409 > 404 > 500
-
-## 本地测试
-
-### 方式一：VS Code REST Client
-
-安装 REST Client 插件，打开项目根目录的 	est_api.http，点击每个请求上方的 Send Request 即可发送。
-
-### 方式二：命令行 curl
-
-`ash
-# 健康检查
-curl http://localhost:8000/health
-
-# 系统重置
-curl -X POST http://localhost:8000/api/reset/
-
-# 注册
-curl -X POST http://localhost:8000/api/users/ \
-  -H "Content-Type: application/json" \
-  -d '{"username":"test","password":"test123456"}'
-
-# 登录
-curl -X POST http://localhost:8000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admintestpassword"}' \
-  -c cookies.txt
-
-# 携带 Cookie 的后续请求
-curl -b cookies.txt http://localhost:8000/api/problems/
-`
-
-### 方式三：Streamlit 前端
-
-启动后端后，另开终端：
-
-`ash
-cd oj-system
-streamlit run frontend/app.py --server.port 8501
-`
-
-浏览器打开 http://localhost:8501，登录后即可使用。
-
-## 实验要求
-
-请参考 [实验说明](https://keg-course.github.io/python-docs/oj/)。
+```bash
+cd backend
+PYTHONPATH=tests python3 -m pytest tests/ -v
+```
