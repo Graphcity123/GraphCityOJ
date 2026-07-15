@@ -16,13 +16,14 @@
 {% else %}
 <table class="submission-table">
     <thead>
-        <tr><th>编号</th><th>题目</th><th>状态</th><th>得分</th><th></th></tr>
+        <tr><th>编号</th><th>题目</th><th>用户</th><th>状态</th><th>得分</th></tr>
     </thead>
     <tbody>
     {% for s in submissions %}
     <tr class="clickable-row" onclick="location.href='{% url 'submission_log' s.submission_id %}'" style="cursor:pointer">
-        <td><code>{{ s.submission_id }}</code></td>
+        <td><strong>{{ s.submission_id }}</strong></td>
         <td>{% if s.problem_id %}<a href="{% url 'problem_detail' s.problem_id %}" onclick="event.stopPropagation()">{{ s.problem_title|default:s.problem_id }}</a>{% else %}?{% endif %}</td>
+        <td>{{ s.user_id }}</td>
         <td>
             {% if s.status == 'pending' %}
             <span class="badge badge-pending">评测中</span>
@@ -44,4 +45,6 @@
     </tbody>
 </table>
 {% endif %}
+
+{% include 'oj/_pagination.html' %}
 {% endblock %}

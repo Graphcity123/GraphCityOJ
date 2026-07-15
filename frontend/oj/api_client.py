@@ -126,9 +126,14 @@ def register(request: HttpRequest, username: str,
                     json={'username': username, 'password': password})
 
 
-def list_problems(request: HttpRequest) -> list[dict[str, Any]]:
-    """List all problems."""
-    return api_get(request, '/api/problems/') or []
+def list_problems(request: HttpRequest, **filters: Any) -> dict[str, Any] | list:
+    """List problems, supports optional page/page_size pagination."""
+    params = '&'.join(f'{k}={v}' for k, v in filters.items() if v)
+    path = f'/api/problems/?{params}' if params else '/api/problems/'
+    result = api_get(request, path)
+    if result is None:
+        return [] if not filters else {'problems': [], 'total': 0}
+    return result
 
 
 def get_problem(request: HttpRequest, problem_id: str) -> dict[str, Any] | None:

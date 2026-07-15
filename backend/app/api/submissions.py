@@ -184,6 +184,7 @@ async def list_submissions(
         prob = await get_problem(s.get("problem_id", ""))
         brief: dict = {
             "submission_id": s["submission_id"],
+            "user_id": s.get("user_id", ""),
             "problem_id": s.get("problem_id", ""),
             "problem_title": prob.get("title", "") if prob else "",
             "status": s["status"],

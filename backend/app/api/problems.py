@@ -10,7 +10,7 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Query, Request, UploadFile
 
 from app.config import settings
 from app.schemas import ApiResponse, ProblemCreate
@@ -22,9 +22,23 @@ router = APIRouter(prefix="/api/problems", tags=["problems"])
 
 
 @router.get("/")
-async def list_problems(req: Request):
+async def list_problems(
+    req: Request,
+    page: int | None = Query(default=None),
+    page_size: int | None = Query(default=None),
+):
     require_login(req)
     all_problems = list((await get_problems()).values())
+    total = len(all_problems)
+
+    if page is not None or page_size is not None:
+        page = page or 1
+        page_size = page_size or 20
+        start = (page - 1) * page_size
+        paged = all_problems[start:start + page_size]
+        items = [{"id": p["id"], "title": p["title"]} for p in paged]
+        return ApiResponse(code=200, msg="success", data={"problems": items, "total": total})
+
     items = [{"id": p["id"], "title": p["title"]} for p in all_problems]
     return ApiResponse(code=200, msg="success", data=items)
 

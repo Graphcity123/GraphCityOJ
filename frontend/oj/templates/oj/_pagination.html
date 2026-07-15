@@ -1,0 +1,37 @@
+{% if total_pages > 1 %}
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="?page=1{{ query_params }}">&laquo;</a>
+        <a href="?page={{ page|add:'-1' }}{{ query_params }}">‹</a>
+    {% else %}
+        <span class="disabled">&laquo;</span>
+        <span class="disabled">‹</span>
+    {% endif %}
+
+    {% for num in page_range %}
+        {% if num == page %}
+            <span class="current-page">{{ num }}</span>
+        {% elif num >= page|add:'-2' and num <= page|add:'2' %}
+            <a href="?page={{ num }}{{ query_params }}">{{ num }}</a>
+        {% elif num == page|add:'-3' or num == page|add:'3' %}
+            <span>…</span>
+        {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+        <a href="?page={{ page|add:'1' }}{{ query_params }}">›</a>
+        <a href="?page={{ total_pages }}{{ query_params }}">&raquo;</a>
+    {% else %}
+        <span class="disabled">›</span>
+        <span class="disabled">&raquo;</span>
+    {% endif %}
+
+    <form method="get" class="page-jump">
+        {% for key, val in query_dict.items %}
+            {% if key != 'page' %}<input type="hidden" name="{{ key }}" value="{{ val }}">{% endif %}
+        {% endfor %}
+        <input type="number" name="page" min="1" max="{{ total_pages }}" placeholder="{{ page }}">
+        <button type="submit">跳转</button>
+    </form>
+</div>
+{% endif %}

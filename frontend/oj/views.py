@@ -54,15 +54,48 @@ def logout_view(request):
 
 # ── Problems ──────────────────────────────────────────────────
 
+def _paginate(request, total: int, page_size: int) -> dict:
+    """Build pagination context for templates."""
+    page = int(request.GET.get('page', '1'))
+    total_pages = max(1, (total + page_size - 1) // page_size) if total else 1
+    page = min(page, total_pages)
+    page_range = list(range(1, total_pages + 1))
+
+    # Preserve query params (except page) for pagination links
+    query_parts = []
+    for key in request.GET:
+        if key != 'page':
+            for val in request.GET.getlist(key):
+                query_parts.append(f'{key}={val}')
+    query_params = ('&' + '&'.join(query_parts)) if query_parts else ''
+    query_dict = {k: v for k, v in request.GET.items() if k != 'page'}
+
+    return {
+        'page': page,
+        'total_pages': total_pages,
+        'page_range': page_range,
+        'query_params': query_params,
+        'query_dict': query_dict,
+    }
+
+
 @login_required
 def problem_list(request):
-    """List all problems."""
-    problems = api.list_problems(request)
+    """List problems with pagination."""
+    page_size = 20
+    page = int(request.GET.get('page', '1'))
+    data = api.list_problems(request, page=page, page_size=page_size)
+    if isinstance(data, list):
+        problems = data
+        total = len(data)
+    else:
+        problems = data.get('problems', [])
+        total = data.get('total', 0)
+
     user = request.session.get('user', {})
-    return render(request, 'oj/problems/list.html', {
-        'problems': problems or [],
-        'user': user,
-    })
+    ctx = _paginate(request, total, page_size)
+    ctx.update({'problems': problems or [], 'user': user, 'total': total})
+    return render(request, 'oj/problems/list.html', ctx)
 
 
 @login_required
@@ -134,19 +167,24 @@ def submission_list(request):
     """List submissions — all logged-in users can see all."""
     user = request.session.get('user', {})
 
-    filters = {'page': request.GET.get('page', '1'),
-               'page_size': request.GET.get('page_size', '50')}
+    page_size = int(request.GET.get('page_size', '50'))
+    page = int(request.GET.get('page', '1'))
+    filters = {'page': page, 'page_size': page_size}
     if request.GET.get('user_id'):
         filters['user_id'] = request.GET['user_id']
     if request.GET.get('problem_id'):
         filters['problem_id'] = request.GET['problem_id']
 
     data = api.list_submissions(request, **filters)
-    return render(request, 'oj/submissions/list.html', {
+    total = data.get('total', 0)
+
+    ctx = _paginate(request, total, page_size)
+    ctx.update({
         'submissions': data.get('submissions', []),
-        'total': data.get('total', 0),
+        'total': total,
         'user': user,
     })
+    return render(request, 'oj/submissions/list.html', ctx)
 
 
 @login_required

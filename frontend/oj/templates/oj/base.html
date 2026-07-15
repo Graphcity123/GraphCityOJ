@@ -83,7 +83,11 @@
         btn.className = 'copy-btn';
         btn.textContent = '复制';
         btn.onclick = () => {
-            navigator.clipboard.writeText(pre.textContent).then(() => {
+            const codeText = Array.from(pre.childNodes)
+                .filter(n => n !== btn)
+                .map(n => n.textContent)
+                .join('');
+            navigator.clipboard.writeText(codeText).then(() => {
                 btn.textContent = '已复制!'; setTimeout(() => btn.textContent = '复制', 1200);
             });
         };
