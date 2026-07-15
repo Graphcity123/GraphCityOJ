@@ -109,12 +109,10 @@ async def list_users(
 
 @router.get("/{user_id}")
 async def get_user_info(req: Request, user_id: str):
-    req_user = get_current_user(req)
+    get_current_user(req)  # must be logged in
     u = await get_user(user_id)
     if u is None:
         raise UserNotFound(user_id)
-    if req_user.get("role") != "admin" and user_id != req_user["user_id"]:
-        raise PermissionDenied("Cannot view other users info")
     return ApiResponse(code=200, msg="success", data={
         "user_id": u["user_id"],
         "username": u["username"],

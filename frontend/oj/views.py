@@ -390,6 +390,23 @@ def admin_import(request):
                   {'user': request.session.get('user', {})})
 
 
+@login_required
+def user_profile(request, user_id: str):
+    """User profile page — shows user info and their submissions."""
+    user = request.session.get('user', {})
+    profile = api.get_user(request, user_id) or {}
+    data = api.list_submissions(request, user_id=user_id, page=1, page_size=30)
+    total = data.get('total', 0)
+    ctx = _paginate(request, total, 30)
+    ctx.update({
+        'profile': profile,
+        'submissions': data.get('submissions', []),
+        'total': total,
+        'user': user,
+    })
+    return render(request, 'oj/users/profile.html', ctx)
+
+
 @admin_required
 def admin_users(request):
     """User management."""

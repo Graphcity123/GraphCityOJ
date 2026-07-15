@@ -1,29 +1,33 @@
 {% extends 'oj/base.html' %}
-{% block title %}提交记录 — GCOJ{% endblock %}
+{% block title %}{{ profile.username }} — GCOJ{% endblock %}
 
 {% block content %}
-<h2>提交记录</h2>
+<div class="detail-header">
+    <div class="detail-header-body">
+        <h1 style="font-size:48px">{{ profile.username }}</h1>
+        <div class="detail-meta">
+            <span>角色：{{ profile.role }}</span>
+            <span>加入：{{ profile.join_time }}</span>
+            <span>提交：{{ profile.submit_count }}</span>
+            <span>通过：{{ profile.resolve_count }}</span>
+        </div>
+    </div>
+</div>
 
-<form method="get" class="filter-form">
-    <input type="text" name="user_id" placeholder="用户ID" value="{{ request.GET.user_id }}">
-    <input type="text" name="problem_id" placeholder="题目ID" value="{{ request.GET.problem_id }}">
-    <button type="submit" class="btn">筛选</button>
-    {% if user.user_id %}<a href="?user_id={{ user.user_id }}" class="btn btn-primary">我的提交</a>{% endif %}
-</form>
+<h2>提交记录</h2>
 
 {% if not submissions %}
 <p class="empty">暂无提交记录。</p>
 {% else %}
 <table class="submission-table">
     <thead>
-        <tr><th>编号</th><th>题目</th><th>用户</th><th>状态</th><th>得分</th></tr>
+        <tr><th>编号</th><th>题目</th><th>状态</th><th>得分</th></tr>
     </thead>
     <tbody>
     {% for s in submissions %}
     <tr class="clickable-row" onclick="location.href='{% url 'submission_log' s.submission_id %}'" style="cursor:pointer">
         <td><strong>{{ s.submission_id }}</strong></td>
         <td>{% if s.problem_id %}<a href="{% url 'problem_detail' s.problem_id %}" onclick="event.stopPropagation()">{{ s.problem_title|default:s.problem_id }}</a>{% else %}?{% endif %}</td>
-        <td><a href="{% url 'user_profile' s.user_id %}" onclick="event.stopPropagation()">{{ s.user_id }}</a></td>
         <td>
             {% if s.status == 'pending' %}
             <span class="badge badge-pending">评测中</span>

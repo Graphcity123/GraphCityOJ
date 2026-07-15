@@ -31,6 +31,9 @@ urlpatterns = [
     path('submission/<str:submission_id>/rejudge/', views.submission_rejudge,
          name='submission_rejudge'),
 
+    # Users
+    path('user/<str:user_id>/', views.user_profile, name='user_profile'),
+
     # Admin
     path('admin/reset/', views.admin_reset, name='admin_reset'),
     path('admin/export/', views.admin_export, name='admin_export'),
