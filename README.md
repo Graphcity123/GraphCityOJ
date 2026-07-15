@@ -48,12 +48,6 @@ python3 manage.py runserver 8501
 - 后端 API：http://localhost:8000/health
 - 前端界面：http://localhost:8501
 
-## 默认管理员
-
-| 用户名 | 密码 |
-|--------|------|
-| admin | admintestpassword |
-
 ## 功能
 
 - **用户系统**：注册 / 登录 / 角色管理（admin / user / banned）
