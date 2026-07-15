@@ -182,9 +182,13 @@ async def list_submissions(
     items = []
     for s in paged:
         prob = await get_problem(s.get("problem_id", ""))
+        uid = s.get("user_id", "")
+        urec = await get_user(uid) if uid else None
+        username = urec.get("username", uid) if urec else uid
         brief: dict = {
             "submission_id": s["submission_id"],
-            "user_id": s.get("user_id", ""),
+            "user_id": uid,
+            "username": username,
             "problem_id": s.get("problem_id", ""),
             "problem_title": prob.get("title", "") if prob else "",
             "status": s["status"],
